@@ -1,0 +1,19 @@
+name: .NET Library Pipeline
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "43 14 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  packages: write
+  contents: write
+  
+jobs:
+  dotnet-library:
+    uses: ktsu-dev/workflows/.github/workflows/dotnet-library.yml@main
+    secrets: inherit

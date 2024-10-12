@@ -1,0 +1,80 @@
+<Project>
+  <PropertyGroup>
+    <TargetFrameworks>net7.0;net8.0;</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <SolutionPath>$([System.IO.Path]::GetFullPath($([System.IO.Directory]::GetFiles("$(MSBuildThisFileDirectory)", "*.sln")[0])))</SolutionPath>
+    <SolutionName>$([System.IO.Path]::GetFileNameWithoutExtension($(SolutionPath)))</SolutionName>
+    <SolutionDirectory>$([System.IO.Path]::GetDirectoryName($(SolutionPath)))</SolutionDirectory>
+
+    <DirectoryBuildPropsFile>$(MSBuildThisFileFullPath)</DirectoryBuildPropsFile>
+    
+    <VersionFileName>VERSION</VersionFileName>
+    <AuthorsFileName>AUTHORS</AuthorsFileName>
+    <DescriptionFileName>DESCRIPTION</DescriptionFileName>
+    <LicenseFileName>LICENSE</LicenseFileName>
+    <ChangelogFileName>CHANGELOG</ChangelogFileName>
+    <ReadmeFileName>README</ReadmeFileName>
+
+    <MetadataFileExtension></MetadataFileExtension>
+    <VersionFilePath>$([MSBuild]::ValueOrDefault($(VersionFilePath),$([MSBuild]::GetPathOfFileAbove("$(VersionFileName)$(MetadataFileExtension)"))))</VersionFilePath>
+    <AuthorsFilePath>$([MSBuild]::ValueOrDefault($(AuthorsFilePath),$([MSBuild]::GetPathOfFileAbove("$(AuthorsFileName)$(MetadataFileExtension)"))))</AuthorsFilePath>
+    <DescriptionFilePath>$([MSBuild]::ValueOrDefault($(DescriptionFilePath),$([MSBuild]::GetPathOfFileAbove("$(DescriptionFileName)$(MetadataFileExtension)"))))</DescriptionFilePath>
+    <LicenseFilePath>$([MSBuild]::ValueOrDefault($(LicenseFilePath),$([MSBuild]::GetPathOfFileAbove("$(LicenseFileName)$(MetadataFileExtension)"))))</LicenseFilePath>
+    <ChangelogFilePath>$([MSBuild]::ValueOrDefault($(ChangelogFilePath),$([MSBuild]::GetPathOfFileAbove("$(ChangelogFileName)$(MetadataFileExtension)"))))</ChangelogFilePath>
+    <ReadmeFilePath>$([MSBuild]::ValueOrDefault($(ReadmeFilePath),$([MSBuild]::GetPathOfFileAbove("$(ReadmeFileName)$(MetadataFileExtension)"))))</ReadmeFilePath>
+
+    <MetadataFileExtension>.md</MetadataFileExtension>
+    <VersionFilePath>$([MSBuild]::ValueOrDefault($(VersionFilePath),$([MSBuild]::GetPathOfFileAbove("$(VersionFileName)$(MetadataFileExtension)"))))</VersionFilePath>
+    <AuthorsFilePath>$([MSBuild]::ValueOrDefault($(AuthorsFilePath),$([MSBuild]::GetPathOfFileAbove("$(AuthorsFileName)$(MetadataFileExtension)"))))</AuthorsFilePath>
+    <DescriptionFilePath>$([MSBuild]::ValueOrDefault($(DescriptionFilePath),$([MSBuild]::GetPathOfFileAbove("$(DescriptionFileName)$(MetadataFileExtension)"))))</DescriptionFilePath>
+    <LicenseFilePath>$([MSBuild]::ValueOrDefault($(LicenseFilePath),$([MSBuild]::GetPathOfFileAbove("$(LicenseFileName)$(MetadataFileExtension)"))))</LicenseFilePath>
+    <ChangelogFilePath>$([MSBuild]::ValueOrDefault($(ChangelogFilePath),$([MSBuild]::GetPathOfFileAbove("$(ChangelogFileName)$(MetadataFileExtension)"))))</ChangelogFilePath>
+    <ReadmeFilePath>$([MSBuild]::ValueOrDefault($(ReadmeFilePath),$([MSBuild]::GetPathOfFileAbove("$(ReadmeFileName)$(MetadataFileExtension)"))))</ReadmeFilePath>
+
+    <MetadataFileExtension>.txt</MetadataFileExtension>
+    <VersionFilePath>$([MSBuild]::ValueOrDefault($(VersionFilePath),$([MSBuild]::GetPathOfFileAbove("$(VersionFileName)$(MetadataFileExtension)"))))</VersionFilePath>
+    <AuthorsFilePath>$([MSBuild]::ValueOrDefault($(AuthorsFilePath),$([MSBuild]::GetPathOfFileAbove("$(AuthorsFileName)$(MetadataFileExtension)"))))</AuthorsFilePath>
+    <DescriptionFilePath>$([MSBuild]::ValueOrDefault($(DescriptionFilePath),$([MSBuild]::GetPathOfFileAbove("$(DescriptionFileName)$(MetadataFileExtension)"))))</DescriptionFilePath>
+    <LicenseFilePath>$([MSBuild]::ValueOrDefault($(LicenseFilePath),$([MSBuild]::GetPathOfFileAbove("$(LicenseFileName)$(MetadataFileExtension)"))))</LicenseFilePath>
+    <ChangelogFilePath>$([MSBuild]::ValueOrDefault($(ChangelogFilePath),$([MSBuild]::GetPathOfFileAbove("$(ChangelogFileName)$(MetadataFileExtension)"))))</ChangelogFilePath>
+    <ReadmeFilePath>$([MSBuild]::ValueOrDefault($(ReadmeFilePath),$([MSBuild]::GetPathOfFileAbove("$(ReadmeFileName)$(MetadataFileExtension)"))))</ReadmeFilePath>
+
+    <RunSettingsFilePath>$([MSBuild]::GetPathOfFileAbove(".runsettings"))</RunSettingsFilePath>
+    <EditorConfigFilePath>$([MSBuild]::GetPathOfFileAbove(".editorconfig"))</EditorConfigFilePath>
+    <GitAttributesFilePath>$([MSBuild]::GetPathOfFileAbove(".gitattributes"))</GitAttributesFilePath>
+    <GitIgnoreFilePath>$([MSBuild]::GetPathOfFileAbove(".gitignore"))</GitIgnoreFilePath>
+    <GitModulesFilePath>$([MSBuild]::GetPathOfFileAbove(".gitmodules"))</GitModulesFilePath>
+    <GlobalJsonFilePath>$([MSBuild]::GetPathOfFileAbove("global.json"))</GlobalJsonFilePath>
+    <MailMapFilePath>$([MSBuild]::GetPathOfFileAbove(".mailmap"))</MailMapFilePath>
+    <SetupNsiFilePath>$([MSBuild]::GetPathOfFileAbove("setup.nsi"))</SetupNsiFilePath>
+    <DotnetCoreNshFilePath>$([MSBuild]::GetPathOfFileAbove("dotnetcore.nsh"))</DotnetCoreNshFilePath>
+    <AzurePipelinesFilePath>$([MSBuild]::GetPathOfFileAbove("azure-pipelines.yml"))</AzurePipelinesFilePath>
+    <ReleasesFilePath>$([MSBuild]::GetPathOfFileAbove("RELEASES"))</ReleasesFilePath>
+
+    <Authors Condition="Exists('$(AuthorsFilePath)')">$([System.IO.File]::ReadAllText($(AuthorsFilePath)).Trim())</Authors>
+    <Description Condition="Exists('$(DescriptionFilePath)')">$([System.IO.File]::ReadAllText($(DescriptionFilePath)).Trim())</Description>
+    <License Condition="Exists('$(LicenseFilePath)')">$([System.IO.File]::ReadAllText($(LicenseFilePath)).Trim())</License>
+    <Changelog Condition="Exists('$(ChangelogFilePath)')">$([System.IO.File]::ReadAllText($(ChangelogFilePath)).Trim())</Changelog>
+    <Readme Condition="Exists('$(ReadmeFilePath)')">$([System.IO.File]::ReadAllText($(ReadmeFilePath)).Trim())</Readme>
+    <Version Condition="Exists('$(VersionFilePath)')">$([System.IO.File]::ReadAllText($(VersionFilePath)).Trim())</Version>
+
+    <AuthorsNamespace>$(Authors.Replace(" ", ""))</AuthorsNamespace>
+    <SolutionNamespace>$(SolutionName.Replace(" ", ""))</SolutionNamespace>
+    <ProjectNamespace>$(MSBuildProjectName.Replace(" ", "").Replace($(SolutionNamespace), "").Trim("."))</ProjectNamespace>
+    <IntermediateNamespace>$(AuthorsNamespace).$(SolutionNamespace).$(ProjectNamespace)</IntermediateNamespace>
+    <RootNamespace>$(IntermediateNamespace.Trim("."))</RootNamespace>
+    <AssemblyName>$(RootNamespace)</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <WarningLevel>9999</WarningLevel>
+    <NoWarn>CA1724;CA1034;CA1000;CA2260;</NoWarn>
+    <EnablePackageValidation>True</EnablePackageValidation>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+  </PropertyGroup>
+</Project>
