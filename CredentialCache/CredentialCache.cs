@@ -44,4 +44,7 @@ public class CredentialCache : AppData<CredentialCache>
 	}
 
 	public static PersonaGUID CreatePersonaGUID() => Guid.NewGuid().ToString().As<PersonaGUID>();
+
+	public void RegisterCredentialFactory<T>(ICredentialFactory<T> factory) where T : Credential =>
+		CredentialFactories[typeof(T)] = factory;
 }
