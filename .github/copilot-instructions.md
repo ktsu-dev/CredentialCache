@@ -132,6 +132,62 @@ These are the rules for this project:
     - **Do** use language features effectively to write clean and efficient code.
     - **Do not** misuse language features, leading to unclear or inefficient code.
 
+- **Additional Best Practices**
+  - **Code Documentation**
+    - **Do** use XML comments for public APIs to provide clear documentation.
+    - **Do not** leave public methods or classes undocumented.
+  
+  - **Exception Handling**
+    - **Do** catch specific exceptions rather than general ones.
+    - **Do** avoid swallowing exceptions without handling them.
+    - **Do** use exception filters where appropriate.
+    - **Do not** use empty catch blocks.
+  
+  - **Dependency Injection**
+    - **Do** utilize dependency injection to manage dependencies and promote testability.
+    - **Do not** tightly couple classes by instantiating dependencies directly.
+  
+  - **Logging**
+    - **Do** implement logging using a consistent logging framework.
+    - **Do** log meaningful information at appropriate log levels (e.g., Information, Warning, Error).
+    - **Do not** log sensitive information.
+  
+  - **Avoid Magic Numbers and Strings**
+    - **Do** use constants or enums instead of hard-coded values.
+    - **Do not** embed magic numbers or strings directly in the code.
+  
+  - **Single Responsibility Principle**
+    - **Do** ensure each class or method has a single responsibility.
+    - **Do not** combine multiple responsibilities within a single class or method.
+  
+  - **DRY (Don't Repeat Yourself)**
+    - **Do** abstract and reuse common functionality.
+    - **Do not** duplicate code across the codebase.
+  
+  - **KISS (Keep It Simple, Stupid)**
+    - **Do** write simple and straightforward code.
+    - **Do not** introduce unnecessary complexity.
+  
+  - **YAGNI (You Aren't Gonna Need It)**
+    - **Do** implement features based on current requirements.
+    - **Do not** add functionality anticipating future needs unless necessary.
+  
+  - **Thread Safety**
+    - **Do** ensure thread-safe operations in multi-threaded environments.
+    - **Do not** introduce race conditions or deadlocks.
+  
+  - **Lambda Expressions and LINQ**
+    - **Do** use lambda expressions and LINQ for concise and readable code.
+    - **Do not** create overly complex LINQ queries that reduce readability.
+  
+  - **Method Length and Complexity**
+    - **Do** keep methods concise and focused.
+    - **Do not** create methods that are excessively long or complex.
+  
+  - **Code Reviews**
+    - **Do** participate in regular code reviews to maintain code quality.
+    - **Do not** bypass peer reviews for critical changes.
+
 ### Don'ts
 
 - **Avoid Inconsistent Indentation and Formatting**
@@ -170,6 +226,47 @@ These are the rules for this project:
   - Do **not** leave unused parameters or suppressions in the code.
   - Avoid retaining unused variables and expressions.
   - Do **not** include redundant method calls or wrappers.
+
+- **Additional Best Practices Violations**
+  - **Code Documentation**
+    - Do **not** leave public methods or classes undocumented.
+  
+  - **Exception Handling**
+    - Do **not** catch general exceptions; catch specific ones instead.
+    - Do **not** use empty catch blocks.
+  
+  - **Dependency Injection**
+    - Do **not** tightly couple classes by instantiating dependencies directly.
+  
+  - **Logging**
+    - Do **not** log sensitive information.
+  
+  - **Magic Numbers and Strings**
+    - Do **not** embed magic numbers or strings directly in the code.
+  
+  - **Single Responsibility Principle**
+    - Do **not** combine multiple responsibilities within a single class or method.
+  
+  - **DRY (Don't Repeat Yourself)**
+    - Do **not** duplicate code across the codebase.
+  
+  - **KISS (Keep It Simple, Stupid)**
+    - Do **not** introduce unnecessary complexity.
+  
+  - **YAGNI (You Aren't Gonna Need It)**
+    - Do **not** add functionality anticipating future needs unless necessary.
+  
+  - **Thread Safety**
+    - Do **not** introduce race conditions or deadlocks.
+  
+  - **Lambda Expressions and LINQ**
+    - Do **not** create overly complex LINQ queries that reduce readability.
+  
+  - **Method Length and Complexity**
+    - Do **not** create methods that are excessively long or complex.
+  
+  - **Code Reviews**
+    - Do **not** bypass peer reviews for critical changes.
 
 - **Miscellaneous**
   - Do **not** bypass or disable essential code analysis rules unless absolutely necessary.
