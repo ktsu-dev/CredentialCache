@@ -1,12 +1,13 @@
 # Copilot Instructions
 
-These are the rules for this project:
+These are the rules for this project when giving code suggestions:
 
 ## Guidelines
 
 ### Testing Framework
 
 - **Use the MSTest framework when writing tests.**
+- **Do not** use the `using Microsoft.VisualStudio.TestTools.UnitTesting;` as it is already included via the project properties.
 
 ### Variable Declarations
 
@@ -14,6 +15,7 @@ These are the rules for this project:
 - **Use C# 9.0 target-typed `new` expressions.**
 - **Do not use the `var` keyword** for the following types:
   - `string`, `int`, `long`, `float`, `double`, `decimal`, `bool`, `char`, and `object`.
+- **Use `var`** for all other types where the type is clear from the right-hand side of the assignment.
 
 ### Consistent Encoding and Formatting
 
@@ -50,6 +52,7 @@ These are the rules for this project:
 - **Prefer object and collection initializers.**
 - **Use conditional expressions and compound assignments** where appropriate.
 - **Prefer simplified boolean expressions** and null-checking.
+- **Prefer collection expressions** over ToArray()
 
 **Code Style Violations:**
 
@@ -66,7 +69,7 @@ These are the rules for this project:
   - **Private fields** and **local variables**.
 - **Prefix interfaces with an uppercase 'I'** (e.g., `ICredentialFactory`).
 - **Prefix generic type parameters with an uppercase 'T'** (e.g., `TCredential`).
-- **Do not use underscores** in identifiers.
+- **Do not use underscores** in identifiers, field names, parameter names, method names, or property names.
 - **Do not use inconsistent or non-descriptive names.**
 
 **Naming Violations:**
@@ -268,3 +271,19 @@ These are the rules for this project:
 
 - **Do not bypass or disable essential code analysis rules** unless absolutely necessary.
 - **Avoid inconsistent naming styles** that do not adhere to the defined `.editorconfig` rules.
+
+## Explicit Analyzer Rules
+
+- IDE0300: Use collection expression for array
+- IDE0305: Collection initialization can be simplified
+- IDE0055: Fix formatting
+- IDE0160: Use file-scoped namespace
+- IDE0005: Using directive is unnecessary
+- IDE0065: Prefer using directives to be placed inside the namespace
+- MSTEST0006: Avoid [ExpectedException]
+- CA1707: Identifiers should not contain underscores
+- CA1050: Declare types in namespaces
+- CS8600: Converting null literal or possible null value to non-nullable type
+- CS8604: Possible null reference argument
+
+
