@@ -48,47 +48,47 @@
 
     <!-- Descriptive properties -->
     <ContributorsFileName>CONTRIBUTORS.md</ContributorsFileName>
-    <ContributorsFilePath>$(SolutionDir)\$(ContributorsFileName)</ContributorsFilePath>
+    <ContributorsFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(ContributorsFileName)"))</ContributorsFilePath>
     <Contributors Condition="Exists($(ContributorsFilePath))">$([System.IO.File]::ReadAllText($(ContributorsFilePath)).Trim())</Contributors>
 
     <ChangelogFileName>CHANGELOG.md</ChangelogFileName>
-    <ChangelogFilePath>$(SolutionDir)\$(ChangelogFileName)</ChangelogFilePath>
+    <ChangelogFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(ChangelogFileName)"))</ChangelogFilePath>
     <Changelog Condition="Exists($(ChangelogFilePath))">$([System.IO.File]::ReadAllText($(ChangelogFilePath)).Trim())</Changelog>
 
     <ReadmeFileName>README.md</ReadmeFileName>
-    <ReadmeFilePath>$(SolutionDir)\$(ReadmeFileName)</ReadmeFilePath>
+    <ReadmeFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(ReadmeFileName)"))</ReadmeFilePath>
     <Readme Condition="Exists($(ReadmeFilePath))">$([System.IO.File]::ReadAllText($(ReadmeFilePath)).Trim())</Readme>
 
     <LicenseFileName>LICENSE.md</LicenseFileName>
-    <LicenseFilePath>$(SolutionDir)\$(LicenseFileName)</LicenseFilePath>
+    <LicenseFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(LicenseFileName)"))</LicenseFilePath>
     <License Condition="Exists($(LicenseFilePath))">$([System.IO.File]::ReadAllText($(LicenseFilePath)).Trim())</License>
 
     <AuthorsFileName>AUTHORS.md</AuthorsFileName>
-    <AuthorsFilePath>$(SolutionDir)\$(AuthorsFileName)</AuthorsFilePath>
+    <AuthorsFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(AuthorsFileName)"))</AuthorsFilePath>
     <Authors Condition="Exists($(AuthorsFilePath))">$([System.IO.File]::ReadAllText($(AuthorsFilePath)).Trim())</Authors>
 
     <AuthorsUrlFileName>AUTHORS.url</AuthorsUrlFileName>
-    <AuthorsUrlFilePath>$(SolutionDir)\$(AuthorsUrlFileName)</AuthorsUrlFilePath>
+    <AuthorsUrlFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(AuthorsUrlFileName)"))</AuthorsUrlFilePath>
     <AuthorsUrl Condition="Exists($(AuthorsUrlFilePath))">$([System.IO.File]::ReadAllText($(AuthorsUrlFilePath)).Trim())</AuthorsUrl>
 
     <ProjectUrlFileName>PROJECT.url</ProjectUrlFileName>
-    <ProjectUrlFilePath>$(SolutionDir)\$(ProjectUrlFileName)</ProjectUrlFilePath>
+    <ProjectUrlFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(ProjectUrlFileName)"))</ProjectUrlFilePath>
     <ProjectUrl Condition="Exists($(ProjectUrlFilePath))">$([System.IO.File]::ReadAllText($(ProjectUrlFilePath)).Trim())</ProjectUrl>
 
     <CopyrightFileName>COPYRIGHT.md</CopyrightFileName>
-    <CopyrightFilePath>$(SolutionDir)\$(CopyrightFileName)</CopyrightFilePath>
+    <CopyrightFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(CopyrightFileName)"))</CopyrightFilePath>
     <Copyright Condition="Exists($(CopyrightFilePath))">$([System.IO.File]::ReadAllText($(CopyrightFilePath)).Trim())</Copyright>
 
     <VersionFileName>VERSION.md</VersionFileName>
-    <VersionFilePath>$(SolutionDir)\$(VersionFileName)</VersionFilePath>
+    <VersionFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(VersionFileName)"))</VersionFilePath>
     <Version Condition="Exists($(VersionFilePath))">$([System.IO.File]::ReadAllText($(VersionFilePath)).Trim())</Version>
 
     <DescriptionFileName>DESCRIPTION.md</DescriptionFileName>
-    <DescriptionFilePath>$(SolutionDir)\$(DescriptionFileName)</DescriptionFilePath>
+    <DescriptionFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(DescriptionFileName)"))</DescriptionFilePath>
     <Description Condition="Exists($(DescriptionFilePath))">$([System.IO.File]::ReadAllText($(DescriptionFilePath)).Trim())</Description>
 
     <IconFileName>icon.png</IconFileName>
-    <IconFilePath>$(SolutionDir)\$(IconFileName)</IconFilePath>
+    <IconFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(IconFileName)"))</IconFilePath>
 
     <!-- Namespace properties -->
     <AuthorsNamespace>$(Authors.Replace(" ", "").Replace('-', '.').Split('.')[0])</AuthorsNamespace>
@@ -265,3 +265,4 @@
   </PropertyGroup>
 
 </Project>
+
