@@ -19,13 +19,13 @@ public class CredentialCache : AppData<CredentialCache>
 	/// <summary>
 	/// Gets the dictionary of credential factories.
 	/// </summary>
-	private ConcurrentDictionary<Type, ICredentialFactory> CredentialFactories { get; init; } = [];
+	private ConcurrentDictionary<Type, ICredentialFactory> CredentialFactories { get; init; } = new();
 
 	/// <summary>
 	/// Gets the dictionary of credentials.
 	/// </summary>
 	[JsonInclude]
-	private ConcurrentDictionary<PersonaGUID, Credential> Credentials { get; init; } = [];
+	private ConcurrentDictionary<PersonaGUID, Credential> Credentials { get; init; } = new();
 
 	/// <summary>
 	/// Gets the singleton instance of the <see cref="CredentialCache"/> class.
@@ -35,7 +35,6 @@ public class CredentialCache : AppData<CredentialCache>
 	/// <summary>
 	/// Retrieves the singleton instance of the <see cref="CredentialCache"/> class.
 	/// </summary>
-	/// <returns>The singleton instance of the <see cref="CredentialCache"/> class.</returns>
 	public static CredentialCache Instance => LazyInstance.Value;
 
 	/// <summary>
@@ -52,10 +51,11 @@ public class CredentialCache : AppData<CredentialCache>
 	/// </summary>
 	/// <param name="providerGuid">The GUID of the persona.</param>
 	/// <param name="gitCredential">The credential to add or replace.</param>
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="gitCredential"/> is null.</exception>
 	public void AddOrReplace(PersonaGUID providerGuid, Credential gitCredential)
 	{
-		_ = Credentials.AddOrUpdate(providerGuid, gitCredential, (_, _) => gitCredential);
-		Save();
+		ArgumentNullException.ThrowIfNull(gitCredential);
+		Credentials[providerGuid] = gitCredential;
 	}
 
 	/// <summary>
@@ -90,8 +90,12 @@ public class CredentialCache : AppData<CredentialCache>
 	/// </summary>
 	/// <typeparam name="T">The type of the credential.</typeparam>
 	/// <param name="factory">The factory to register.</param>
-	public void RegisterCredentialFactory<T>(ICredentialFactory<T> factory) where T : Credential =>
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="factory"/> is null.</exception>
+	public void RegisterCredentialFactory<T>(ICredentialFactory<T> factory) where T : Credential
+	{
+		ArgumentNullException.ThrowIfNull(factory);
 		CredentialFactories[typeof(T)] = factory;
+	}
 
 	/// <summary>
 	/// Unregisters a credential factory for the specified credential type.
@@ -100,3 +104,4 @@ public class CredentialCache : AppData<CredentialCache>
 	public void UnregisterCredentialFactory<T>() where T : Credential =>
 		CredentialFactories.TryRemove(typeof(T), out _);
 }
+
