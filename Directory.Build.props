@@ -7,13 +7,13 @@
     <SolutionPath Condition="'$(SolutionPath)' == ''">$([MSBuild]::NormalizePath($([System.IO.Path]::GetFullPath($([System.IO.Directory]::GetFiles("$(MSBuildThisFileDirectory)", "*$(SolutionExt)")[0])))))</SolutionPath>
     <SolutionFileName Condition="'$(SolutionFileName)' == ''">$([System.IO.Path]::GetFileName($(SolutionPath)))</SolutionFileName>
     <SolutionName Condition="'$(SolutionName)' == ''">$([System.IO.Path]::GetFileNameWithoutExtension($(SolutionPath)))</SolutionName>
-    <SolutionDir Condition="'$(SolutionDir)' == ''">$([MSBuild]::NormalizeDirectory($([System.IO.Path]::GetDirectoryName($(SolutionPath)))))</SolutionDir>
+    <SolutionDir Condition="'$(SolutionDir)' == ''">$([MSBuild]::NormalizePath($([System.IO.Path]::GetDirectoryName($(SolutionPath)))))</SolutionDir>
 
     <!-- GitHub related properties -->
     <GitHubWorkflowFileName>dotnet.yml</GitHubWorkflowFileName>
     <GitHubCopilotInstructionsFileName>copilot-instructions.md</GitHubCopilotInstructionsFileName>
-    <GitHubDir>$([MSBuild]::NormalizeDirectory("$(SolutionDir)\.github"))</GitHubDir>
-    <GitHubWorkflowDir>$([MSBuild]::NormalizeDirectory("$(GitHubDir)\workflows"))</GitHubWorkflowDir>
+    <GitHubDir>$([MSBuild]::NormalizePath("$(SolutionDir)\.github"))</GitHubDir>
+    <GitHubWorkflowDir>$([MSBuild]::NormalizePath("$(GitHubDir)\workflows"))</GitHubWorkflowDir>
     <GitHubWorkflowFilePath>$([MSBuild]::NormalizePath("$(GitHubWorkflowDir)\$(GitHubWorkflowFileName)"))</GitHubWorkflowFilePath>
     <GitHubCopilotInstructionsFilePath>$([MSBuild]::NormalizePath("$(GitHubDir)\$(GitHubCopilotInstructionsFileName)"))</GitHubCopilotInstructionsFilePath>
 
@@ -25,7 +25,7 @@
     <GitMailMapFileName>.mailmap</GitMailMapFileName>
     <GitIgnoreFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(GitIgnoreFileName)"))</GitIgnoreFilePath>
     <GitAttributesFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(GitAttributesFileName)"))</GitAttributesFilePath>
-    <GitConfigFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(GitConfigFilePath)"))</GitConfigFilePath>
+    <GitConfigFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(GitConfigFileName)"))</GitConfigFilePath>
     <GitModulesFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(GitModulesFileName)"))</GitModulesFilePath>
     <GitMailMapFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(GitMailMapFileName)"))</GitMailMapFilePath>
 
@@ -33,9 +33,11 @@
     <DirectoryBuildPropsFileName>Directory.Build.props</DirectoryBuildPropsFileName>
     <DirectoryBuildTargetsFileName>Directory.Build.targets</DirectoryBuildTargetsFileName>
     <EditorConfigFileName>.editorconfig</EditorConfigFileName>
+    <RunSettingsFileName>.runsettings</RunSettingsFileName>
     <DirectoryBuildPropsFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(DirectoryBuildPropsFileName)"))</DirectoryBuildPropsFilePath>
     <DirectoryBuildTargetsFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(DirectoryBuildTargetsFileName)"))</DirectoryBuildTargetsFilePath>
     <EditorConfigFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(EditorConfigFileName)"))</EditorConfigFilePath>
+    <RunSettingsFilePath>$([MSBuild]::NormalizePath("$(SolutionDir)\$(RunSettingsFileName)"))</RunSettingsFilePath>
 
     <!-- Primary Project properties-->
     <PrimaryProjectName>$(SolutionName)</PrimaryProjectName>
