@@ -1,10 +1,15 @@
-## v1.0.0 (major)
+## v1.0.0 (patch)
+
+Changes since v1.0.0-pre.78:
+
+- Add mailmap ([@matt-edmondson](https://github.com/matt-edmondson))
+
+## v1.0.0-pre.59 (major)
 
 Changes since 0.0.0.0:
 
 - Add a way to register credential factories ([@matt-edmondson](https://github.com/matt-edmondson))
 - Add Additional Best Practices to copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
-- Add automation scripts for metadata and version management ([@matt-edmondson](https://github.com/matt-edmondson))
 - Add comprehensive project guidelines in copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
 - Add credential factories ([@matt-edmondson](https://github.com/matt-edmondson))
 - Add CredentialCache test project and initial test cases ([@matt-edmondson](https://github.com/matt-edmondson))
