@@ -16,5 +16,5 @@ public interface ICredentialFactory<T> : ICredentialFactory where T : Credential
 	/// Creates a new instance of the credential.
 	/// </summary>
 	/// <returns>A new instance of the credential of type <typeparamref name="T"/>.</returns>
-	T Create();
+	public T Create();
 }
