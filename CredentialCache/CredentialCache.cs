@@ -2,6 +2,7 @@ namespace ktsu.CredentialCache;
 
 using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
+
 using ktsu.AppDataStorage;
 using ktsu.Extensions;
 using ktsu.StrongStrings;

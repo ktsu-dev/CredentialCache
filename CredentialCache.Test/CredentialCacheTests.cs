@@ -236,5 +236,3 @@ public class AnotherCredentialFactory : ICredentialFactory<AnotherCredential>
 {
 	public AnotherCredential Create() => new();
 }
-
-
