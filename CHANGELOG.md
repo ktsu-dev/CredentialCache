@@ -1,3 +1,9 @@
+## v1.2.2 (patch)
+
+Changes since v1.2.1:
+
+- Remove Copilot instructions document ([@matt-edmondson](https://github.com/matt-edmondson))
+
 ## v1.2.1 (patch)
 
 Changes since v1.2.0:
