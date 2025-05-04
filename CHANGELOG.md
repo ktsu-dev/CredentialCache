@@ -1,3 +1,9 @@
+## v1.2.3 (patch)
+
+Changes since v1.2.2:
+
+- Enhance README with detailed project description, features, installation instructions, and usage examples. Update project SDK references in .csproj files for CredentialCache and its tests. ([@matt-edmondson](https://github.com/matt-edmondson))
+
 ## v1.2.2 (patch)
 
 Changes since v1.2.1:
