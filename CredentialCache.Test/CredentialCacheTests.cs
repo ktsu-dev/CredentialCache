@@ -1,3 +1,7 @@
+// Copyright (c) ktsu.dev
+// All rights reserved.
+// Licensed under the MIT license.
+
 namespace ktsu.CredentialCache.Test;
 
 [TestClass]
@@ -12,7 +16,7 @@ public class CredentialCacheTests
 		var guid = CredentialCache.CreatePersonaGUID();
 
 		// Act
-		bool result = cache.TryGet(guid, out var credential);
+		var result = cache.TryGet(guid, out var credential);
 
 		// Assert
 		Assert.IsFalse(result);
@@ -29,7 +33,7 @@ public class CredentialCacheTests
 
 		// Act
 		cache.AddOrReplace(guid, credential);
-		bool result = cache.TryGet(guid, out var retrievedCredential);
+		var result = cache.TryGet(guid, out var retrievedCredential);
 
 		// Assert
 		Assert.IsTrue(result);
@@ -44,7 +48,7 @@ public class CredentialCacheTests
 		cache.UnregisterCredentialFactory<CredentialWithNothing>(); //ensure factory is not registered by some previous test
 
 		// Act
-		bool result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
 		Assert.IsFalse(result);
@@ -60,7 +64,7 @@ public class CredentialCacheTests
 		cache.RegisterCredentialFactory(factory);
 
 		// Act
-		bool result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
 		Assert.IsTrue(result);
@@ -77,7 +81,7 @@ public class CredentialCacheTests
 
 		// Act
 		cache.RegisterCredentialFactory(factory);
-		bool result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
 		Assert.IsTrue(result);
@@ -95,7 +99,7 @@ public class CredentialCacheTests
 
 		// Act
 		cache.UnregisterCredentialFactory<CredentialWithNothing>();
-		bool result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
 		Assert.IsFalse(result);
@@ -110,7 +114,7 @@ public class CredentialCacheTests
 
 		// Act
 		cache.UnregisterCredentialFactory<CredentialWithNothing>();
-		bool result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
 		Assert.IsFalse(result);
@@ -155,8 +159,8 @@ public class CredentialCacheTests
 		// Act
 		cache.AddOrReplace(guid1, factory1.Create());
 		cache.AddOrReplace(guid2, factory2.Create());
-		bool result1 = cache.TryGet(guid1, out var credential1);
-		bool result2 = cache.TryGet(guid2, out var credential2);
+		var result1 = cache.TryGet(guid1, out var credential1);
+		var result2 = cache.TryGet(guid2, out var credential2);
 
 		// Assert
 		Assert.IsTrue(result1);
@@ -175,21 +179,21 @@ public class CredentialCacheTests
 		var cache = CredentialCache.Instance;
 		var factory = new CredentialWithNothingFactory();
 		cache.RegisterCredentialFactory(factory);
-		int numberOfThreads = 10;
-		int operationsPerThread = 100;
+		var numberOfThreads = 10;
+		var operationsPerThread = 100;
 		List<Task> tasks = [];
 
 		// Act
-		for (int i = 0; i < numberOfThreads; i++)
+		for (var i = 0; i < numberOfThreads; i++)
 		{
 			tasks.Add(Task.Run(() =>
 			{
-				for (int j = 0; j < operationsPerThread; j++)
+				for (var j = 0; j < operationsPerThread; j++)
 				{
 					var guid = CredentialCache.CreatePersonaGUID();
 					var credential = factory.Create();
 					cache.AddOrReplace(guid, credential);
-					bool result = cache.TryGet(guid, out var retrievedCredential);
+					var result = cache.TryGet(guid, out var retrievedCredential);
 					Assert.IsTrue(result);
 					Assert.AreEqual(credential, retrievedCredential);
 				}
@@ -214,8 +218,8 @@ public class CredentialCacheTests
 
 		// Act
 		cache.UnregisterCredentialFactory<CredentialWithNothing>();
-		bool creationResult = cache.TryCreate<CredentialWithNothing>(out var credentialAfterUnregister);
-		bool retrievalResult = cache.TryGet(guid, out var retrievedCredential);
+		var creationResult = cache.TryCreate<CredentialWithNothing>(out var credentialAfterUnregister);
+		var retrievalResult = cache.TryGet(guid, out var retrievedCredential);
 
 		// Assert
 		Assert.IsFalse(creationResult);
