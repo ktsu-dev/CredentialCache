@@ -1,6 +1,9 @@
-## v1.2.4-pre.8 (prerelease)
+## v1.2.4-pre.9 (prerelease)
 
 Incremental prerelease update.
+## v1.2.4-pre.8 (prerelease)
+
+Changes since v1.2.4-pre.7:
 ## v1.2.4-pre.7 (prerelease)
 
 Changes since v1.2.4-pre.6:
