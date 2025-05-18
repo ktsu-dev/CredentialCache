@@ -1,6 +1,6 @@
 MIT License
 
-https://github.com/ktsu-dev/ktsu-dev/CredentialCache
+https://github.com/ktsu-dev/CredentialCache
 
 Copyright (c) 2023-2025 ktsu-dev
 
