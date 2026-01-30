@@ -19,7 +19,7 @@ public class CredentialCacheTests
 		var result = cache.TryGet(guid, out var credential);
 
 		// Assert
-		Assert.IsFalse(result);
+		Assert.IsFalse(result, "TryGet should return false when credential is not found");
 		Assert.IsNull(credential);
 	}
 
@@ -36,7 +36,7 @@ public class CredentialCacheTests
 		var result = cache.TryGet(guid, out var retrievedCredential);
 
 		// Assert
-		Assert.IsTrue(result);
+		Assert.IsTrue(result, "TryGet should return true after adding a credential");
 		Assert.AreEqual(credential, retrievedCredential);
 	}
 
@@ -51,7 +51,7 @@ public class CredentialCacheTests
 		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
-		Assert.IsFalse(result);
+		Assert.IsFalse(result, "TryCreate should return false when factory is not registered");
 		Assert.IsNull(credential);
 	}
 
@@ -67,7 +67,7 @@ public class CredentialCacheTests
 		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
-		Assert.IsTrue(result);
+		Assert.IsTrue(result, "TryCreate should return true when factory is registered");
 		Assert.IsNotNull(credential);
 		Assert.IsInstanceOfType<CredentialWithNothing>(credential);
 	}
@@ -84,7 +84,7 @@ public class CredentialCacheTests
 		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
-		Assert.IsTrue(result);
+		Assert.IsTrue(result, "TryCreate should return true after registering factory");
 		Assert.IsNotNull(credential);
 		Assert.IsInstanceOfType<CredentialWithNothing>(credential);
 	}
@@ -102,7 +102,7 @@ public class CredentialCacheTests
 		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
-		Assert.IsFalse(result);
+		Assert.IsFalse(result, "TryCreate should return false after unregistering factory");
 		Assert.IsNull(credential);
 	}
 
@@ -117,7 +117,7 @@ public class CredentialCacheTests
 		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
 
 		// Assert
-		Assert.IsFalse(result);
+		Assert.IsFalse(result, "TryCreate should return false when factory was never registered");
 		Assert.IsNull(credential);
 	}
 
@@ -163,11 +163,11 @@ public class CredentialCacheTests
 		var result2 = cache.TryGet(guid2, out var credential2);
 
 		// Assert
-		Assert.IsTrue(result1);
+		Assert.IsTrue(result1, "TryGet should return true for first credential type");
 		Assert.IsNotNull(credential1);
 		Assert.IsInstanceOfType<CredentialWithNothing>(credential1);
 
-		Assert.IsTrue(result2);
+		Assert.IsTrue(result2, "TryGet should return true for second credential type");
 		Assert.IsNotNull(credential2);
 		Assert.IsInstanceOfType<AnotherCredential>(credential2);
 	}
@@ -194,7 +194,7 @@ public class CredentialCacheTests
 					var credential = factory.Create();
 					cache.AddOrReplace(guid, credential);
 					var result = cache.TryGet(guid, out var retrievedCredential);
-					Assert.IsTrue(result);
+					Assert.IsTrue(result, "TryGet should return true under concurrent access");
 					Assert.AreEqual(credential, retrievedCredential);
 				}
 			}));
@@ -222,9 +222,9 @@ public class CredentialCacheTests
 		var retrievalResult = cache.TryGet(guid, out var retrievedCredential);
 
 		// Assert
-		Assert.IsFalse(creationResult);
+		Assert.IsFalse(creationResult, "TryCreate should return false after unregistering factory");
 		Assert.IsNull(credentialAfterUnregister);
-		Assert.IsTrue(retrievalResult);
+		Assert.IsTrue(retrievalResult, "TryGet should return true for previously stored credential");
 		Assert.IsInstanceOfType<CredentialWithNothing>(retrievedCredential);
 	}
 }

@@ -10,14 +10,14 @@ using System.Text.Json.Serialization;
 using ktsu.Extensions;
 using ktsu.FileSystemProvider;
 using ktsu.PersistenceProvider;
-using ktsu.StrongStrings;
+using ktsu.Semantics.Strings;
 using ktsu.UniversalSerializer.Json;
 using ktsu.UniversalSerializer.Services;
 
 /// <summary>
 /// Represents a globally unique identifier for a persona.
 /// </summary>
-public sealed record class PersonaGUID : StrongStringAbstract<PersonaGUID> { }
+public sealed record class PersonaGUID : SemanticString<PersonaGUID> { }
 
 /// <summary>
 /// Data model for credential cache persistence.

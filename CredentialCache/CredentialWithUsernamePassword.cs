@@ -4,17 +4,16 @@
 
 namespace ktsu.CredentialCache;
 
-using ktsu.StrongStrings;
+using ktsu.Semantics.Strings;
 
 /// <summary>
 /// Represents a credential with a username.
 /// </summary>
-public sealed record class CredentialUsername : StrongStringAbstract<CredentialUsername> { }
+public sealed record class CredentialUsername : SemanticString<CredentialUsername> { }
 /// <summary>
 /// Represents a credential with a password.
 /// </summary>
-public sealed record class CredentialPassword : StrongStringAbstract<CredentialPassword> { }
-
+public sealed record class CredentialPassword : SemanticString<CredentialPassword> { }
 /// <summary>
 /// Represents a credential that includes both a username and a password.
 /// </summary>

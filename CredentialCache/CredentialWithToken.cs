@@ -4,12 +4,12 @@
 
 namespace ktsu.CredentialCache;
 
-using ktsu.StrongStrings;
+using ktsu.Semantics.Strings;
 
 /// <summary>
 /// Represents a token used for credential authentication.
 /// </summary>
-public sealed record class CredentialToken : StrongStringAbstract<CredentialToken> { }
+public sealed record class CredentialToken : SemanticString<CredentialToken> { }
 
 /// <summary>
 /// Represents a credential that includes a token for authentication.
