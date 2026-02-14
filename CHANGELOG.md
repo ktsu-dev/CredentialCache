@@ -2,6 +2,7 @@
 
 Changes since v1.2.0:
 
+- Remove legacy build scripts ([@matt-edmondson](https://github.com/matt-edmondson))
 - Refactor project structure and update dependencies; enhance test assertions for clarity ([@matt-edmondson](https://github.com/matt-edmondson))
 - Refactor CredentialCache to use a dedicated data model and enhance persistence management ([@matt-edmondson](https://github.com/matt-edmondson))
 - Update project configuration files, add new workflows, and enhance SDK management ([@matt-edmondson](https://github.com/matt-edmondson))
