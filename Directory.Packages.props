@@ -11,7 +11,7 @@
     <PackageVersion Include="FluentAssertions" Version="6.12.1" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="ImGui.NET" Version="1.91.6.1" />
-    <PackageVersion Include="ktsu.AppDataStorage" Version="1.15.12" />
+    <PackageVersion Include="ktsu.AppDataStorage" Version="1.16.13" />
     <PackageVersion Include="ktsu.CaseConverter" Version="1.3.2" />
     <PackageVersion Include="ktsu.Extensions" Version="1.5.14" />
     <PackageVersion Include="ktsu.FuzzySearch" Version="1.2.1" />
