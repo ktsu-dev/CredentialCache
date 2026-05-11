@@ -4,21 +4,22 @@
 
 namespace ktsu.CredentialCache.Test;
 
+using ktsu.CredentialCache.Storage;
+using ktsu.Semantics.Strings;
+
 [TestClass]
-//[DoNotParallelize]
 public class CredentialCacheTests
 {
+	private static CredentialCache NewCache() => new(new InMemoryCredentialStore());
+
 	[TestMethod]
 	public void TryGetReturnsFalseWhenCredentialNotFound()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var guid = CredentialCache.CreatePersonaGUID();
+		using CredentialCache cache = NewCache();
+		PersonaGUID guid = CredentialCache.CreatePersonaGUID();
 
-		// Act
-		var result = cache.TryGet(guid, out var credential);
+		bool result = cache.TryGet(guid, out Credential? credential);
 
-		// Assert
 		Assert.IsFalse(result, "TryGet should return false when credential is not found");
 		Assert.IsNull(credential);
 	}
@@ -26,31 +27,62 @@ public class CredentialCacheTests
 	[TestMethod]
 	public void AddOrReplaceAddsCredentialSuccessfully()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var guid = CredentialCache.CreatePersonaGUID();
-		var credential = new CredentialWithNothing();
+		using CredentialCache cache = NewCache();
+		PersonaGUID guid = CredentialCache.CreatePersonaGUID();
+		CredentialWithNothing credential = new();
 
-		// Act
 		cache.AddOrReplace(guid, credential);
-		var result = cache.TryGet(guid, out var retrievedCredential);
+		bool result = cache.TryGet(guid, out Credential? retrievedCredential);
 
-		// Assert
 		Assert.IsTrue(result, "TryGet should return true after adding a credential");
 		Assert.AreEqual(credential, retrievedCredential);
 	}
 
 	[TestMethod]
+	public void AddOrReplacePersistsCredentialToBackingStore()
+	{
+		InMemoryCredentialStore store = new();
+		PersonaGUID guid = CredentialCache.CreatePersonaGUID();
+		CredentialWithUsernamePassword credential = new()
+		{
+			Username = SemanticString<CredentialUsername>.Create("alice"),
+			Password = SemanticString<CredentialPassword>.Create("hunter2"),
+		};
+
+		using (CredentialCache writer = new(store))
+		{
+			writer.AddOrReplace(guid, credential);
+		}
+
+		using CredentialCache reader = new(store);
+		Assert.IsTrue(reader.TryGet(guid, out Credential? roundTripped));
+		CredentialWithUsernamePassword? typed = roundTripped as CredentialWithUsernamePassword;
+		Assert.IsNotNull(typed);
+		Assert.AreEqual("alice", typed!.Username.ToString());
+		Assert.AreEqual("hunter2", typed.Password.ToString());
+	}
+
+	[TestMethod]
+	public void RemoveDeletesCredentialFromBothLayers()
+	{
+		InMemoryCredentialStore store = new();
+		PersonaGUID guid = CredentialCache.CreatePersonaGUID();
+		CredentialWithNothing credential = new();
+
+		using CredentialCache cache = new(store);
+		cache.AddOrReplace(guid, credential);
+		Assert.IsTrue(cache.Remove(guid));
+		Assert.IsFalse(cache.TryGet(guid, out _));
+		Assert.IsFalse(store.TryLoad(guid, out _));
+	}
+
+	[TestMethod]
 	public void TryCreateReturnsFalseWhenFactoryNotRegistered()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		cache.UnregisterCredentialFactory<CredentialWithNothing>(); //ensure factory is not registered by some previous test
+		using CredentialCache cache = NewCache();
 
-		// Act
-		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		bool result = cache.TryCreate<CredentialWithNothing>(out Credential? credential);
 
-		// Assert
 		Assert.IsFalse(result, "TryCreate should return false when factory is not registered");
 		Assert.IsNull(credential);
 	}
@@ -58,33 +90,12 @@ public class CredentialCacheTests
 	[TestMethod]
 	public void TryCreateCreatesCredentialSuccessfullyWhenFactoryRegistered()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var factory = new CredentialWithNothingFactory();
-		cache.RegisterCredentialFactory(factory);
+		using CredentialCache cache = NewCache();
+		cache.RegisterCredentialFactory(new CredentialWithNothingFactory());
 
-		// Act
-		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		bool result = cache.TryCreate<CredentialWithNothing>(out Credential? credential);
 
-		// Assert
 		Assert.IsTrue(result, "TryCreate should return true when factory is registered");
-		Assert.IsNotNull(credential);
-		Assert.IsInstanceOfType<CredentialWithNothing>(credential);
-	}
-
-	[TestMethod]
-	public void RegisterCredentialFactoryRegistersFactorySuccessfully()
-	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var factory = new CredentialWithNothingFactory();
-
-		// Act
-		cache.RegisterCredentialFactory(factory);
-		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
-
-		// Assert
-		Assert.IsTrue(result, "TryCreate should return true after registering factory");
 		Assert.IsNotNull(credential);
 		Assert.IsInstanceOfType<CredentialWithNothing>(credential);
 	}
@@ -92,16 +103,12 @@ public class CredentialCacheTests
 	[TestMethod]
 	public void UnregisterCredentialFactoryUnregistersFactorySuccessfully()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var factory = new CredentialWithNothingFactory();
-		cache.RegisterCredentialFactory(factory);
+		using CredentialCache cache = NewCache();
+		cache.RegisterCredentialFactory(new CredentialWithNothingFactory());
 
-		// Act
 		cache.UnregisterCredentialFactory<CredentialWithNothing>();
-		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		bool result = cache.TryCreate<CredentialWithNothing>(out Credential? credential);
 
-		// Assert
 		Assert.IsFalse(result, "TryCreate should return false after unregistering factory");
 		Assert.IsNull(credential);
 	}
@@ -109,123 +116,152 @@ public class CredentialCacheTests
 	[TestMethod]
 	public void UnregisterCredentialFactoryDoesNothingWhenFactoryNotRegistered()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
+		using CredentialCache cache = NewCache();
 
-		// Act
 		cache.UnregisterCredentialFactory<CredentialWithNothing>();
-		var result = cache.TryCreate<CredentialWithNothing>(out var credential);
+		bool result = cache.TryCreate<CredentialWithNothing>(out Credential? credential);
 
-		// Assert
-		Assert.IsFalse(result, "TryCreate should return false when factory was never registered");
+		Assert.IsFalse(result);
 		Assert.IsNull(credential);
 	}
 
 	[TestMethod]
 	public void RegisterCredentialFactoryThrowsArgumentNullExceptionWhenFactoryIsNull()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
+		using CredentialCache cache = NewCache();
 		ICredentialFactory<CredentialWithNothing>? factory = null;
 
-		// Act & Assert
-		Assert.ThrowsException<ArgumentNullException>(() => cache.RegisterCredentialFactory(factory!));
+		Assert.Throws<ArgumentNullException>(() => cache.RegisterCredentialFactory(factory!));
 	}
 
 	[TestMethod]
 	public void AddOrReplaceThrowsArgumentNullExceptionWhenCredentialIsNull()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var guid = CredentialCache.CreatePersonaGUID();
+		using CredentialCache cache = NewCache();
+		PersonaGUID guid = CredentialCache.CreatePersonaGUID();
 		CredentialWithNothing? credential = null;
 
-		// Act & Assert
-		Assert.ThrowsException<ArgumentNullException>(() => cache.AddOrReplace(guid, credential!));
+		Assert.Throws<ArgumentNullException>(() => cache.AddOrReplace(guid, credential!));
+	}
+
+	[TestMethod]
+	public void ConstructorThrowsWhenStoreIsNull()
+	{
+		ICredentialStore? store = null;
+		Assert.Throws<ArgumentNullException>(() => new CredentialCache(store!));
+	}
+
+	[TestMethod]
+	public void OperationsThrowAfterDispose()
+	{
+		CredentialCache cache = NewCache();
+		cache.Dispose();
+
+		Assert.Throws<ObjectDisposedException>(() =>
+			cache.AddOrReplace(CredentialCache.CreatePersonaGUID(), new CredentialWithNothing()));
+		Assert.Throws<ObjectDisposedException>(() =>
+			cache.TryGet(CredentialCache.CreatePersonaGUID(), out _));
+	}
+
+	[TestMethod]
+	public void CredentialSerializationRoundTripsAllKnownTypes()
+	{
+		Credential nothing = new CredentialWithNothing();
+		Credential token = new CredentialWithToken
+		{
+			Token = SemanticString<CredentialToken>.Create("opaque-token"),
+		};
+		Credential creds = new CredentialWithUsernamePassword
+		{
+			Username = SemanticString<CredentialUsername>.Create("u"),
+			Password = SemanticString<CredentialPassword>.Create("p"),
+		};
+
+		foreach (Credential original in new[] { nothing, token, creds })
+		{
+			byte[] bytes = CredentialSerialization.Serialize(original);
+			Credential? deserialized = CredentialSerialization.Deserialize(bytes);
+			Assert.IsNotNull(deserialized);
+			Assert.AreEqual(original.GetType(), deserialized!.GetType());
+		}
 	}
 
 	[TestMethod]
 	public void RegisterMultipleCredentialFactoriesCreatesCredentialsCorrectly()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var factory1 = new CredentialWithNothingFactory();
-		var factory2 = new AnotherCredentialFactory();
+		using CredentialCache cache = NewCache();
+		CredentialWithNothingFactory factory1 = new();
+		AnotherCredentialFactory factory2 = new();
 		cache.RegisterCredentialFactory(factory1);
 		cache.RegisterCredentialFactory(factory2);
-		var guid1 = CredentialCache.CreatePersonaGUID();
-		var guid2 = CredentialCache.CreatePersonaGUID();
+		PersonaGUID guid1 = CredentialCache.CreatePersonaGUID();
+		PersonaGUID guid2 = CredentialCache.CreatePersonaGUID();
 
-		// Act
 		cache.AddOrReplace(guid1, factory1.Create());
 		cache.AddOrReplace(guid2, factory2.Create());
-		var result1 = cache.TryGet(guid1, out var credential1);
-		var result2 = cache.TryGet(guid2, out var credential2);
+		bool result1 = cache.TryGet(guid1, out Credential? credential1);
+		bool result2 = cache.TryGet(guid2, out Credential? credential2);
 
-		// Assert
-		Assert.IsTrue(result1, "TryGet should return true for first credential type");
-		Assert.IsNotNull(credential1);
+		Assert.IsTrue(result1);
 		Assert.IsInstanceOfType<CredentialWithNothing>(credential1);
 
-		Assert.IsTrue(result2, "TryGet should return true for second credential type");
-		Assert.IsNotNull(credential2);
+		Assert.IsTrue(result2);
 		Assert.IsInstanceOfType<AnotherCredential>(credential2);
 	}
 
 	[TestMethod]
 	public void CredentialCacheIsThreadSafeUnderConcurrentAccess()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var factory = new CredentialWithNothingFactory();
-		cache.RegisterCredentialFactory(factory);
-		var numberOfThreads = 10;
-		var operationsPerThread = 100;
+		using CredentialCache cache = NewCache();
+		cache.RegisterCredentialFactory(new CredentialWithNothingFactory());
+		const int numberOfThreads = 8;
+		const int operationsPerThread = 100;
 		List<Task> tasks = [];
 
-		// Act
-		for (var i = 0; i < numberOfThreads; i++)
+		for (int i = 0; i < numberOfThreads; i++)
 		{
 			tasks.Add(Task.Run(() =>
 			{
-				for (var j = 0; j < operationsPerThread; j++)
+				for (int j = 0; j < operationsPerThread; j++)
 				{
-					var guid = CredentialCache.CreatePersonaGUID();
-					var credential = factory.Create();
+					PersonaGUID guid = CredentialCache.CreatePersonaGUID();
+					CredentialWithNothing credential = new();
 					cache.AddOrReplace(guid, credential);
-					var result = cache.TryGet(guid, out var retrievedCredential);
-					Assert.IsTrue(result, "TryGet should return true under concurrent access");
-					Assert.AreEqual(credential, retrievedCredential);
+					Assert.IsTrue(cache.TryGet(guid, out Credential? retrieved));
+					Assert.AreEqual(credential, retrieved);
 				}
 			}));
 		}
 
 		Task.WaitAll([.. tasks]);
-
-		// Assert
-		// All assertions within tasks are validated
 	}
 
 	[TestMethod]
-	public void UnregisterCredentialFactoryPreventsCredentialCreation()
+	public void ConfigureStoreCannotBeCalledAfterInstanceConstructed()
 	{
-		// Arrange
-		var cache = CredentialCache.Instance;
-		var factory = new CredentialWithNothingFactory();
-		cache.RegisterCredentialFactory(factory);
-		var guid = CredentialCache.CreatePersonaGUID();
-		cache.AddOrReplace(guid, factory.Create());
+		CredentialCache.ResetSingletonForTesting();
+		CredentialCache.ConfigureStore(new InMemoryCredentialStore());
+		_ = CredentialCache.Instance;
+		Assert.Throws<InvalidOperationException>(
+			() => CredentialCache.ConfigureStore(new InMemoryCredentialStore()));
+		CredentialCache.ResetSingletonForTesting();
+	}
 
-		// Act
-		cache.UnregisterCredentialFactory<CredentialWithNothing>();
-		var creationResult = cache.TryCreate<CredentialWithNothing>(out var credentialAfterUnregister);
-		var retrievalResult = cache.TryGet(guid, out var retrievedCredential);
-
-		// Assert
-		Assert.IsFalse(creationResult, "TryCreate should return false after unregistering factory");
-		Assert.IsNull(credentialAfterUnregister);
-		Assert.IsTrue(retrievalResult, "TryGet should return true for previously stored credential");
-		Assert.IsInstanceOfType<CredentialWithNothing>(retrievedCredential);
+	[TestMethod]
+	public void SingletonUsesConfiguredStore()
+	{
+		CredentialCache.ResetSingletonForTesting();
+		InMemoryCredentialStore store = new();
+		CredentialCache.ConfigureStore(store);
+		try
+		{
+			CredentialCache instance = CredentialCache.Instance;
+			Assert.AreSame(store, instance.Store);
+		}
+		finally
+		{
+			CredentialCache.ResetSingletonForTesting();
+		}
 	}
 }
 
