@@ -16,6 +16,16 @@
 # in Unix via a file share from Windows, the scripts will work.
 *.sh text eol=lf
 
+# .editorconfig declares end_of_line = crlf for the entire tree. Force CRLF in
+# the working copy so cross-platform CI (and Linux/macOS contributors) see the
+# files exactly as editorconfig demands -- otherwise the IDE0055 formatting
+# analyzer (treat-warnings-as-errors) fails the build on non-Windows runners.
+*.cs       text eol=crlf
+*.csproj   text eol=crlf
+*.props    text eol=crlf
+*.targets  text eol=crlf
+*.editorconfig text eol=crlf
+
 ###############################
 # Git Large File System (LFS) #
 ###############################
