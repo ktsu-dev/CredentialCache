@@ -2,6 +2,12 @@
 
 Changes since v1.2.0:
 
+- Add native-store integration tests + split EnumerateKeys ([@Claude](https://github.com/Claude))
+- Pass test project via --project flag ([@Claude](https://github.com/Claude))
+- Drop `--logger` from dotnet test in cross-platform workflow ([@Claude](https://github.com/Claude))
+- Force CRLF working-tree line endings for .cs files ([@Claude](https://github.com/Claude))
+- Rewrite persistence layer to use platform-native credential stores ([@Claude](https://github.com/Claude))
+- Add TAGS.md with NuGet package tags ([@matt-edmondson](https://github.com/matt-edmondson))
 - Remove legacy build scripts ([@matt-edmondson](https://github.com/matt-edmondson))
 - Refactor project structure and update dependencies; enhance test assertions for clarity ([@matt-edmondson](https://github.com/matt-edmondson))
 - Refactor CredentialCache to use a dedicated data model and enhance persistence management ([@matt-edmondson](https://github.com/matt-edmondson))
