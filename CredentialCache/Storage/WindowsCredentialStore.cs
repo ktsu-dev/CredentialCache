@@ -16,7 +16,7 @@ using ktsu.Semantics.Strings;
 /// representation of the <see cref="Credential"/>.
 /// </summary>
 [SupportedOSPlatform("windows")]
-internal sealed class WindowsCredentialStore : ICredentialStore
+internal sealed class WindowsCredentialStore : ISearchableCredentialStore
 {
 	internal const string DefaultServicePrefix = "ktsu.CredentialCache";
 

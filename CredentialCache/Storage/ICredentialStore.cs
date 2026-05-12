@@ -31,9 +31,4 @@ public interface ICredentialStore
 	/// Removes any credential associated with <paramref name="persona"/>.
 	/// </summary>
 	public bool Remove(PersonaGUID persona);
-
-	/// <summary>
-	/// Enumerates every persona key currently stored.
-	/// </summary>
-	public IEnumerable<PersonaGUID> EnumerateKeys();
 }

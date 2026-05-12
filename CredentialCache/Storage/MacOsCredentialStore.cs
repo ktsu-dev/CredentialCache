@@ -183,16 +183,6 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 		}
 	}
 
-	/// <inheritdoc/>
-	public IEnumerable<PersonaGUID> EnumerateKeys()
-	{
-		// SecItemCopyMatching with a CFDictionary is required for enumeration. Implementing
-		// the CoreFoundation marshalling for an enumerate-only path adds substantial native
-		// surface; callers that need enumeration can track keys themselves or rely on the
-		// in-memory snapshot maintained by <see cref="CredentialCache"/>.
-		yield break;
-	}
-
 	private static class NativeMethods
 	{
 		internal const int errSecSuccess = 0;

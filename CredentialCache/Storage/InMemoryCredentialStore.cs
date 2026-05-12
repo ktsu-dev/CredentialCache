@@ -10,13 +10,11 @@ using System.Collections.Concurrent;
 /// A non-persistent credential store backed by an in-memory dictionary. Intended for
 /// tests and applications that explicitly opt out of platform-level persistence.
 /// </summary>
-public sealed class InMemoryCredentialStore : ICredentialStore
+public sealed class InMemoryCredentialStore : ISearchableCredentialStore
 {
-
 	private readonly ConcurrentDictionary<PersonaGUID, Credential> _items = new();
 
 	/// <inheritdoc/>
-
 	public string Name => "InMemory";
 
 	/// <inheritdoc/>
@@ -24,7 +22,6 @@ public sealed class InMemoryCredentialStore : ICredentialStore
 	{
 		ArgumentNullException.ThrowIfNull(persona);
 		return _items.TryGetValue(persona, out credential);
-
 	}
 
 	/// <inheritdoc/>
@@ -33,7 +30,6 @@ public sealed class InMemoryCredentialStore : ICredentialStore
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
 		_items[persona] = credential;
-
 	}
 
 	/// <inheritdoc/>
@@ -41,7 +37,6 @@ public sealed class InMemoryCredentialStore : ICredentialStore
 	{
 		ArgumentNullException.ThrowIfNull(persona);
 		return _items.TryRemove(persona, out _);
-
 	}
 
 	/// <inheritdoc/>
