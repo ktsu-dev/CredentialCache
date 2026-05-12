@@ -1,180 +1,119 @@
 # ktsu.CredentialCache
 
-> A secure credential storage and management system for .NET applications.
+> A cross-platform credential cache for .NET that stores secrets in the host's native keyring.
 
 [![License](https://img.shields.io/github/license/ktsu-dev/CredentialCache)](https://github.com/ktsu-dev/CredentialCache/blob/main/LICENSE.md)
 [![NuGet](https://img.shields.io/nuget/v/ktsu.CredentialCache.svg)](https://www.nuget.org/packages/ktsu.CredentialCache/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ktsu.CredentialCache.svg)](https://www.nuget.org/packages/ktsu.CredentialCache/)
 [![Build Status](https://github.com/ktsu-dev/CredentialCache/workflows/build/badge.svg)](https://github.com/ktsu-dev/CredentialCache/actions)
-[![GitHub Stars](https://img.shields.io/github/stars/ktsu-dev/CredentialCache?style=social)](https://github.com/ktsu-dev/CredentialCache/stargazers)
 
-## Introduction
+## Overview
 
-CredentialCache is a .NET library that provides a secure and convenient way to store, retrieve, and manage credentials in applications. It offers a flexible caching mechanism for various credential types while handling encryption, security, and persistence automatically.
+CredentialCache keeps credentials in memory for fast lookup during the lifetime of a process and persists each one through an `ICredentialStore` whose default implementation delegates to the platform-native secret manager:
 
-## Features
+| Platform | Backing store | API |
+|----------|--------------|-----|
+| Windows  | Windows Credential Manager | `advapi32` (`CredRead`/`CredWrite`/`CredDelete`) |
+| macOS    | Keychain Services | `Security.framework` (`SecKeychain*`) |
+| Linux    | freedesktop.org Secret Service | `libsecret-1.so.0` |
+| Other / opt-out | None | `InMemoryCredentialStore` |
 
-- **Secure Storage**: Encrypts sensitive credentials using platform-specific security features
-- **Memory Caching**: Efficiently caches credentials in memory for quick access
-- **Multiple Credential Types**: Supports usernames/passwords, API keys, tokens, and certificates
-- **Automatic Expiration**: Time-based expiration for cached credentials
-- **Credential Rotation**: Support for credential rotation and refresh workflows
-- **Thread Safety**: Safe for concurrent access from multiple threads
-- **Extensible**: Easily extend with custom credential types and storage providers
+Each persona's credential is stored as its own entry in the OS keyring &mdash; the library never writes a plaintext blob to disk.
 
 ## Installation
-
-### Package Manager Console
-
-```powershell
-Install-Package ktsu.CredentialCache
-```
-
-### .NET CLI
 
 ```bash
 dotnet add package ktsu.CredentialCache
 ```
 
-### Package Reference
-
-```xml
-<PackageReference Include="ktsu.CredentialCache" Version="x.y.z" />
-```
-
-## Usage Examples
-
-### Basic Example
+## Quick start
 
 ```csharp
 using ktsu.CredentialCache;
+using ktsu.CredentialCache.Storage;
 
-// Create a credential cache
-var cache = new CredentialCache();
+// Pick the platform-native store explicitly...
+ICredentialStore store = CredentialStoreFactory.CreateDefault();
+using CredentialCache cache = new(store);
 
-// Store a credential
-var credential = new UsernamePasswordCredential
+// ...or just use the singleton, which calls CreateDefault() on first access.
+CredentialCache singleton = CredentialCache.Instance;
+
+PersonaGUID persona = CredentialCache.CreatePersonaGUID();
+
+cache.AddOrReplace(persona, new CredentialWithUsernamePassword
 {
-    Username = "user@example.com",
-    Password = "securePassword123",
-    Domain = "example.com"
-};
+    Username = ktsu.Semantics.Strings.SemanticString<CredentialUsername>.Create("alice"),
+    Password = ktsu.Semantics.Strings.SemanticString<CredentialPassword>.Create("hunter2"),
+});
 
-cache.Store("myAppLogin", credential);
-
-// Retrieve the credential later
-if (cache.TryGet("myAppLogin", out UsernamePasswordCredential retrievedCredential))
+if (cache.TryGet(persona, out Credential? stored)
+    && stored is CredentialWithUsernamePassword creds)
 {
-    Console.WriteLine($"Retrieved username: {retrievedCredential.Username}");
-    // Use the credential for authentication
+    Console.WriteLine($"Hello, {creds.Username}");
 }
+
+cache.Remove(persona);
 ```
 
-### Working with API Credentials
+## Credential types
+
+- `CredentialWithNothing` &mdash; sentinel for "no credential required".
+- `CredentialWithToken` &mdash; opaque bearer / API token.
+- `CredentialWithUsernamePassword` &mdash; classic username + password pair.
+
+New credential types must derive from `Credential` and be registered with a `[JsonDerivedType]` attribute on `Credential` so polymorphic serialization round-trips through the keyring entry.
+
+## Customising the backing store
+
+`ICredentialStore` is a small CRUD interface (`TryLoad`/`Save`/`Remove`/`EnumerateKeys`). Bring your own implementation when you need a different backend (HashiCorp Vault, an encrypted file, a test double):
 
 ```csharp
-// Store an API key
-var apiCredential = new ApiKeyCredential
-{
-    Key = "api_12345abcde",
-    Secret = "apisecret_xyz789",
-    Endpoint = "https://api.example.com"
-};
-
-// Store with expiration
-cache.Store("apiAccess", apiCredential, TimeSpan.FromHours(1));
-
-// Check if credential exists and is not expired
-if (cache.Contains("apiAccess"))
-{
-    var cred = cache.Get<ApiKeyCredential>("apiAccess");
-    // Use the API credential
-}
+ICredentialStore store = new MyCustomStore();
+CredentialCache.ConfigureStore(store); // must be called before first Instance access
 ```
 
-### Advanced Usage with Persistent Storage
+For unit tests, use the in-memory store and skip the singleton entirely:
 
 ```csharp
-// Create a cache with persistent storage
-var options = new CredentialCacheOptions
-{
-    PersistToStorage = true,
-    StoragePath = "credentials.dat",
-    EncryptionLevel = EncryptionLevel.High
-};
-
-var persistentCache = new CredentialCache(options);
-
-// Store a credential that will be saved to disk
-var oauthCredential = new OAuthCredential
-{
-    AccessToken = "access_token_123",
-    RefreshToken = "refresh_token_456",
-    ExpiresAt = DateTimeOffset.UtcNow.AddHours(1)
-};
-
-persistentCache.Store("oauth", oauthCredential);
-
-// Later, even after application restart:
-var loadedCache = new CredentialCache(options);
-if (loadedCache.TryGet("oauth", out OAuthCredential oauth))
-{
-    if (oauth.IsExpired)
-    {
-        // Refresh the token
-        oauth = RefreshOAuthToken(oauth);
-        loadedCache.Store("oauth", oauth);
-    }
-    
-    // Use the OAuth token
-}
+using CredentialCache cache = new(new InMemoryCredentialStore());
 ```
 
-## API Reference
+## Platform notes
 
-### `CredentialCache` Class
+- **Windows Credential Manager** caps the credential blob at 2560 bytes. Tokens larger than that will throw `CredentialStoreException` &mdash; split or compress before storing.
+- **Linux** requires `libsecret-1` (e.g. `apt install libsecret-1-0`) plus a running Secret Service implementation (gnome-keyring, KWallet's secret-service bridge, KeePassXC, &hellip;). Headless CI agents typically have neither &mdash; use `InMemoryCredentialStore` there.
+- **macOS** uses the user's default login keychain. The first access from an application prompts the user for permission, as with any keychain client.
+- `EnumerateKeys()` is fully implemented on Windows. On macOS and Linux it currently returns an empty sequence (implementing it would require substantially more native marshalling for a use-case most consumers can satisfy by tracking persona GUIDs themselves).
 
-The main class for storing and retrieving credentials.
+## API summary
 
-#### Properties
+### `CredentialCache`
 
-| Name | Type | Description |
-|------|------|-------------|
-| `Count` | `int` | Number of credentials in the cache |
-| `Options` | `CredentialCacheOptions` | Configuration options for this cache instance |
+| Member | Description |
+|--------|-------------|
+| `CredentialCache(ICredentialStore store)` | Construct an instance with an explicit store. |
+| `static Instance` | Process-wide singleton (lazy, thread-safe). |
+| `static ConfigureStore(ICredentialStore)` | Override the singleton's store. Must precede first `Instance` access. |
+| `static ResetSingletonForTesting()` | Dispose the singleton and clear configuration. Tests only. |
+| `static CreatePersonaGUID()` | Allocates a new `PersonaGUID`. |
+| `TryGet(persona, out cred)` | Memory-cache lookup with fallthrough to the backing store. |
+| `AddOrReplace(persona, cred)` | Persists eagerly through the store. |
+| `Remove(persona)` | Deletes from both the in-memory cache and the store. |
+| `RegisterCredentialFactory<T>(factory)` | Optional factory hook used by `TryCreate<T>`. |
+| `TryCreate<T>(out cred)` | Constructs a credential via a registered factory. |
+| `Dispose()` | Releases in-memory state. The OS store is left untouched. |
 
-#### Methods
+### `ICredentialStore`
 
-| Name | Return Type | Description |
-|------|-------------|-------------|
-| `Store(string key, ICredential credential, TimeSpan? expiration = null)` | `void` | Stores a credential with optional expiration |
-| `Get<T>(string key) where T : ICredential` | `T` | Gets a credential by key (throws if not found) |
-| `TryGet<T>(string key, out T credential) where T : ICredential` | `bool` | Tries to get a credential by key |
-| `Remove(string key)` | `bool` | Removes a credential from the cache |
-| `Contains(string key)` | `bool` | Checks if a credential exists and is not expired |
-| `Clear()` | `void` | Removes all credentials from the cache |
-
-### Credential Types
-
-| Type | Description |
-|------|-------------|
-| `UsernamePasswordCredential` | Standard username and password combination |
-| `ApiKeyCredential` | API key and optional secret |
-| `OAuthCredential` | OAuth access and refresh tokens |
-| `CertificateCredential` | Certificate-based authentication |
-
-## Contributing
-
-Contributions are welcome! Here's how you can help:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-Please ensure your code follows security best practices when dealing with sensitive credential information.
+| Member | Description |
+|--------|-------------|
+| `Name` | Diagnostic identifier (`"Windows Credential Manager"`, `"macOS Keychain"`, `"Linux libsecret (Secret Service)"`, `"InMemory"`). |
+| `TryLoad(persona, out cred)` | Load a single credential. |
+| `Save(persona, cred)` | Persist or overwrite a single credential. |
+| `Remove(persona)` | Delete a single credential. |
+| `EnumerateKeys()` | Enumerate persona keys (Windows only by default). |
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+MIT &mdash; see [LICENSE.md](LICENSE.md).

@@ -10,10 +10,12 @@ using ktsu.Semantics.Strings;
 /// Represents a credential with a username.
 /// </summary>
 public sealed record class CredentialUsername : SemanticString<CredentialUsername> { }
+
 /// <summary>
 /// Represents a credential with a password.
 /// </summary>
 public sealed record class CredentialPassword : SemanticString<CredentialPassword> { }
+
 /// <summary>
 /// Represents a credential that includes both a username and a password.
 /// </summary>

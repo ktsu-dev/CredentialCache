@@ -7,7 +7,7 @@ namespace ktsu.CredentialCache;
 /// <summary>
 /// Represents a factory for creating credentials.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1040:Avoid empty interfaces", Justification = "I'm using this as the base for the generic")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1040:Avoid empty interfaces", Justification = "Base for the generic factory interface.")]
 public interface ICredentialFactory { }
 
 /// <summary>
