@@ -40,11 +40,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Install libsecret (Linux)
+      - name: Install libsecret + dbus + gnome-keyring (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libsecret-1-0
+          sudo apt-get install -y libsecret-1-0 dbus dbus-x11 gnome-keyring
 
       - name: Restore
         run: dotnet restore CredentialCache.sln
@@ -52,5 +52,20 @@ jobs:
       - name: Build
         run: dotnet build CredentialCache.sln --configuration Release --no-restore
 
-      - name: Test
+      - name: Test (non-Linux)
+        if: runner.os != 'Linux'
         run: dotnet test --project CredentialCache.Test/CredentialCache.Test.csproj --configuration Release --no-build
+
+      - name: Test (Linux, under dbus session with gnome-keyring)
+        if: runner.os == 'Linux'
+        shell: bash
+        # The LinuxSecretServiceCredentialStore tests need a running Secret
+        # Service. We spin up a private dbus session, start gnome-keyring-daemon
+        # inside it, unlock with an empty password, then run the test runner
+        # within the same session so libsecret can reach the daemon.
+        run: |
+          dbus-run-session -- bash -c '
+            printf "\n" | gnome-keyring-daemon --unlock --components=secrets >/dev/null 2>&1 &
+            sleep 1
+            dotnet test --project CredentialCache.Test/CredentialCache.Test.csproj --configuration Release --no-build
+          '

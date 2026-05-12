@@ -120,15 +120,6 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		return removed;
 	}
 
-	/// <inheritdoc/>
-	public IEnumerable<PersonaGUID> EnumerateKeys()
-	{
-		// libsecret search_sync requires GLib list/hash-table marshalling. Callers
-		// needing enumeration can track keys themselves or rely on the in-memory
-		// snapshot maintained by <see cref="CredentialCache"/>.
-		yield break;
-	}
-
 	private static void ThrowIfError(IntPtr error, string operation)
 	{
 		if (error == IntPtr.Zero)
