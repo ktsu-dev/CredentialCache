@@ -7,6 +7,19 @@
 # Set default behaviour to automatically normalize line endings.
 * text=auto
 
+# Force .NET source files to always use CRLF line endings to match the
+# end_of_line = crlf setting in .editorconfig. Without this, text=auto checks
+# these files out with LF on Linux/macOS, which makes the IDE0055 formatting
+# analyzer fail on every line on non-Windows checkouts (e.g. CI). Forcing CRLF
+# here keeps the working tree consistent with .editorconfig on every platform.
+*.cs   text eol=crlf
+*.csx  text eol=crlf
+*.cake text eol=crlf
+*.fs   text eol=crlf
+*.fsx  text eol=crlf
+*.vb   text eol=crlf
+*.vbx  text eol=crlf
+
 # Force batch scripts to always use CRLF line endings so that if a repo is accessed
 # in Windows via a file share from Linux, the scripts will work.
 *.{cmd,[cC][mM][dD]} text eol=crlf
@@ -15,16 +28,6 @@
 # Force bash scripts to always use LF line endings so that if a repo is accessed
 # in Unix via a file share from Windows, the scripts will work.
 *.sh text eol=lf
-
-# .editorconfig declares end_of_line = crlf for the entire tree. Force CRLF in
-# the working copy so cross-platform CI (and Linux/macOS contributors) see the
-# files exactly as editorconfig demands -- otherwise the IDE0055 formatting
-# analyzer (treat-warnings-as-errors) fails the build on non-Windows runners.
-*.cs       text eol=crlf
-*.csproj   text eol=crlf
-*.props    text eol=crlf
-*.targets  text eol=crlf
-*.editorconfig text eol=crlf
 
 ###############################
 # Git Large File System (LFS) #
