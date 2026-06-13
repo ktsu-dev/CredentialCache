@@ -1,3 +1,10 @@
+## v1.3.10 (patch)
+
+Changes since v1.3.9:
+
+- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync global.json ([@ktsu[bot]](https://github.com/ktsu[bot]))
+
 ## v1.3.9 (patch)
 
 Changes since v1.3.8:
