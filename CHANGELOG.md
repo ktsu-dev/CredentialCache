@@ -2,6 +2,7 @@
 
 Changes since v1.3.9:
 
+- Bump ktsu.Semantics.Strings from 1.1.2 to 1.1.3 ([@dependabot[bot]](https://github.com/dependabot[bot]))
 - Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
 - Sync .github\dependabot.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
 - Sync icon.png ([@ktsu[bot]](https://github.com/ktsu[bot]))
