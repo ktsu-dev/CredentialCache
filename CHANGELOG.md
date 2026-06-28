@@ -2,19 +2,7 @@
 
 Changes since v1.3.9:
 
-- Bump ktsu.Semantics.Strings from 1.1.2 to 1.1.3 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync .github\dependabot.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync icon.png ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync .gitignore ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync .gitattributes ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync global.json ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Bump Polyfill from 10.10.0 to 10.11.0 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Bump the ktsu group with 9 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Bump Polyfill from 10.8.1 to 10.10.0 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Bump the ktsu group with 8 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync global.json ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- chore: reconcile package references and central versions ([@matt-edmondson](https://github.com/matt-edmondson))
 
 ## v1.3.9 (patch)
 
