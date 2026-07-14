@@ -12,7 +12,7 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.Retry" Version="1.7.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="1.7.2" />
     <PackageVersion Include="Polyfill" Version="10.11.2" />
-    <PackageVersion Include="ktsu.Semantics.Strings" Version="2.5.5" />
+    <PackageVersion Include="ktsu.Semantics.Strings" Version="2.7.0" />
     <PackageVersion Include="System.Text.Json" Version="10.0.9" />
   </ItemGroup>
 </Project>
