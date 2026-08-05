@@ -2,6 +2,10 @@
 
 Changes since v1.3.18:
 
+- Sync .github\workflows\update-sdks.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync .github\workflows\dependabot-merge.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync .gitattributes ([@ktsu[bot]](https://github.com/ktsu[bot]))
 - Bump the ktsu group with 2 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
 - Bump the ktsu group with 1 update ([@dependabot[bot]](https://github.com/dependabot[bot]))
 - Bump the ktsu group with 1 update ([@dependabot[bot]](https://github.com/dependabot[bot]))
@@ -193,68 +197,55 @@ Changes since v1.2.4-pre.14:
 
 ## v1.2.4-pre.14 (prerelease)
 
-Changes since v1.2.4-pre.13:
-
+No significant changes detected since v1.2.4-pre.13.
 
 ## v1.2.4-pre.13 (prerelease)
 
-Changes since v1.2.4-pre.12:
-
+No significant changes detected since v1.2.4-pre.12.
 
 ## v1.2.4-pre.12 (prerelease)
 
-Changes since v1.2.4-pre.11:
-
+No significant changes detected since v1.2.4-pre.11.
 
 ## v1.2.4-pre.11 (prerelease)
 
-Changes since v1.2.4-pre.10:
-
+No significant changes detected since v1.2.4-pre.10.
 
 ## v1.2.4-pre.10 (prerelease)
 
-Changes since v1.2.4-pre.9:
-
+No significant changes detected since v1.2.4-pre.9.
 
 ## v1.2.4-pre.9 (prerelease)
 
-Changes since v1.2.4-pre.8:
-
+No significant changes detected since v1.2.4-pre.8.
 
 ## v1.2.4-pre.8 (prerelease)
 
-Changes since v1.2.4-pre.7:
-
+No significant changes detected since v1.2.4-pre.7.
 
 ## v1.2.4-pre.7 (prerelease)
 
-Changes since v1.2.4-pre.6:
-
+No significant changes detected since v1.2.4-pre.6.
 
 ## v1.2.4-pre.6 (prerelease)
 
-Changes since v1.2.4-pre.5:
-
+No significant changes detected since v1.2.4-pre.5.
 
 ## v1.2.4-pre.5 (prerelease)
 
-Changes since v1.2.4-pre.4:
-
+No significant changes detected since v1.2.4-pre.4.
 
 ## v1.2.4-pre.4 (prerelease)
 
-Changes since v1.2.4-pre.3:
-
+No significant changes detected since v1.2.4-pre.3.
 
 ## v1.2.4-pre.3 (prerelease)
 
-Changes since v1.2.4-pre.2:
-
+No significant changes detected since v1.2.4-pre.2.
 
 ## v1.2.4-pre.2 (prerelease)
 
-Changes since v1.2.4-pre.1:
-
+No significant changes detected since v1.2.4-pre.1.
 
 ## v1.2.4-pre.1 (prerelease)
 
@@ -416,13 +407,11 @@ Changes since v1.0.0-alpha.45:
 
 ## v1.0.0-alpha.45 (prerelease)
 
-Changes since v1.0.0-alpha.44:
-
+No significant changes detected since v1.0.0-alpha.44.
 
 ## v1.0.0-alpha.44 (prerelease)
 
-Changes since v1.0.0-alpha.43:
-
+No significant changes detected since v1.0.0-alpha.43.
 
 ## v1.0.0-alpha.43 (prerelease)
 
@@ -433,8 +422,7 @@ Changes since v1.0.0-alpha.42:
 
 ## v1.0.0-alpha.42 (prerelease)
 
-Changes since v1.0.0-alpha.41:
-
+No significant changes detected since v1.0.0-alpha.41.
 
 ## v1.0.0-alpha.41 (prerelease)
 
@@ -700,13 +688,11 @@ Changes since v1.0.0-pre.77:
 
 ## v1.0.0-pre.77 (prerelease)
 
-Changes since v1.0.0-pre.76:
-
+No significant changes detected since v1.0.0-pre.76.
 
 ## v1.0.0-pre.76 (prerelease)
 
-Changes since v1.0.0-pre.75:
-
+No significant changes detected since v1.0.0-pre.75.
 
 ## v1.0.0-pre.75 (prerelease)
 
@@ -716,13 +702,11 @@ Changes since v1.0.0-pre.74:
 
 ## v1.0.0-pre.74 (prerelease)
 
-Changes since v1.0.0-pre.73:
-
+No significant changes detected since v1.0.0-pre.73.
 
 ## v1.0.0-pre.73 (prerelease)
 
-Changes since v1.0.0-pre.72:
-
+No significant changes detected since v1.0.0-pre.72.
 
 ## v1.0.0-pre.72 (prerelease)
 
@@ -738,13 +722,11 @@ Changes since v1.0.0-pre.70:
 
 ## v1.0.0-pre.70 (prerelease)
 
-Changes since v1.0.0-pre.69:
-
+No significant changes detected since v1.0.0-pre.69.
 
 ## v1.0.0-pre.69 (prerelease)
 
-Changes since v1.0.0-pre.68:
-
+No significant changes detected since v1.0.0-pre.68.
 
 ## v1.0.0-pre.68 (prerelease)
 
@@ -754,8 +736,7 @@ Changes since v1.0.0-pre.67:
 
 ## v1.0.0-pre.67 (prerelease)
 
-Changes since v1.0.0-pre.66:
-
+No significant changes detected since v1.0.0-pre.66.
 
 ## v1.0.0-pre.66 (prerelease)
 
@@ -767,8 +748,7 @@ Changes since v1.0.0-pre.65:
 
 ## v1.0.0-pre.65 (prerelease)
 
-Changes since v1.0.0-pre.64:
-
+No significant changes detected since v1.0.0-pre.64.
 
 ## v1.0.0-pre.64 (prerelease)
 
@@ -778,8 +758,7 @@ Changes since v1.0.0-pre.63:
 
 ## v1.0.0-pre.63 (prerelease)
 
-Changes since v1.0.0-pre.62:
-
+No significant changes detected since v1.0.0-pre.62.
 
 ## v1.0.0-pre.62 (prerelease)
 
