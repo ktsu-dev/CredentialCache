@@ -3,7 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="ktsu.RoundTripStringJsonConverter" Version="1.0.38" />
+    <PackageVersion Include="ktsu.RoundTripStringJsonConverter" Version="1.0.39" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CrashDump" Version="1.7.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.Fakes" Version="17.14.1" />
     <PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="1.7.2" />
