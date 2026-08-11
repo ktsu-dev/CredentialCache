@@ -4,13 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="ktsu.RoundTripStringJsonConverter" Version="1.0.38" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CrashDump" Version="1.7.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.Fakes" Version="17.14.1" />
     <PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="1.7.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.HotReload" Version="1.7.2" />
     <PackageVersion Include="Microsoft.Testing.Extensions.Retry" Version="1.7.2" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="1.7.2" />
     <PackageVersion Include="Polyfill" Version="11.0.2" />
     <PackageVersion Include="ktsu.Semantics.Strings" Version="2.9.3" />
     <PackageVersion Include="System.Text.Json" Version="10.0.10" />
