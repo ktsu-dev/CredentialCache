@@ -11,6 +11,6 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.Retry" Version="1.7.2" />
     <PackageVersion Include="Polyfill" Version="11.0.2" />
     <PackageVersion Include="ktsu.Semantics.Strings" Version="2.9.3" />
-    <PackageVersion Include="System.Text.Json" Version="10.0.10" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.11" />
   </ItemGroup>
 </Project>
