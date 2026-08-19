@@ -8,7 +8,7 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ktsu.CredentialCache?label=Downloads&logo=nuget)](https://nuget.org/packages/ktsu.CredentialCache)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/ktsu-dev/CredentialCache?label=Commits&logo=github)](https://github.com/ktsu-dev/CredentialCache/commits/main)
 [![GitHub contributors](https://img.shields.io/github/contributors/ktsu-dev/CredentialCache?label=Contributors&logo=github)](https://github.com/ktsu-dev/CredentialCache/graphs/contributors)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ktsu-dev/CredentialCache/dotnet.yml?label=Build&logo=github)](https://github.com/ktsu-dev/CredentialCache/actions)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ktsu-dev/CredentialCache/dotnet.yml?branch=main&label=Build&logo=github)](https://github.com/ktsu-dev/CredentialCache/actions)
 
 ## Overview
 
