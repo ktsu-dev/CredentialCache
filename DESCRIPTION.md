@@ -1,1 +1,1 @@
-CredentialCache
+A cross-platform credential cache for .NET that keeps secrets in memory for fast process-lifetime lookup and persists each one through the host's native keyring: Windows Credential Manager, macOS Keychain Services, or the freedesktop.org Secret Service on Linux. Every credential is stored as its own keyring entry scoped by a service name, so no plaintext blob is ever written to disk, and a pluggable ICredentialStore lets you substitute an in-memory store or your own backend.

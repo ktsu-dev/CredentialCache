@@ -2,10 +2,13 @@
 
 > A cross-platform credential cache for .NET that stores secrets in the host's native keyring.
 
-[![License](https://img.shields.io/github/license/ktsu-dev/CredentialCache)](https://github.com/ktsu-dev/CredentialCache/blob/main/LICENSE.md)
-[![NuGet](https://img.shields.io/nuget/v/ktsu.CredentialCache.svg)](https://www.nuget.org/packages/ktsu.CredentialCache/)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/ktsu.CredentialCache.svg)](https://www.nuget.org/packages/ktsu.CredentialCache/)
-[![Build Status](https://github.com/ktsu-dev/CredentialCache/workflows/build/badge.svg)](https://github.com/ktsu-dev/CredentialCache/actions)
+[![License](https://img.shields.io/github/license/ktsu-dev/CredentialCache.svg?label=License&logo=nuget)](LICENSE.md)
+[![NuGet Version](https://img.shields.io/nuget/v/ktsu.CredentialCache?label=Stable&logo=nuget)](https://nuget.org/packages/ktsu.CredentialCache)
+[![NuGet Version](https://img.shields.io/nuget/vpre/ktsu.CredentialCache?label=Latest&logo=nuget)](https://nuget.org/packages/ktsu.CredentialCache)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ktsu.CredentialCache?label=Downloads&logo=nuget)](https://nuget.org/packages/ktsu.CredentialCache)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/ktsu-dev/CredentialCache?label=Commits&logo=github)](https://github.com/ktsu-dev/CredentialCache/commits/main)
+[![GitHub contributors](https://img.shields.io/github/contributors/ktsu-dev/CredentialCache?label=Contributors&logo=github)](https://github.com/ktsu-dev/CredentialCache/graphs/contributors)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ktsu-dev/CredentialCache/dotnet.yml?label=Build&logo=github)](https://github.com/ktsu-dev/CredentialCache/actions)
 
 ## Overview
 
