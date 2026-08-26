@@ -1,6 +1,7 @@
-## v1.3.29 (patch)
+## v1.3.30 (patch)
 
-Changes since v1.3.28:
+Changes since v1.3.29:
 
-- Bump the ktsu group with 11 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- ci: make the SonarQube quality gate opt in [patch] ([@matt-edmondson](https://github.com/matt-edmondson))
+- ci: adopt the unified dotnet workflow [patch] ([@matt-edmondson](https://github.com/matt-edmondson))
 
