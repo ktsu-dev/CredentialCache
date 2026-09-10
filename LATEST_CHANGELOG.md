@@ -1,7 +1,6 @@
-## v1.3.39 (patch)
+## v1.3.40 (patch)
 
-Changes since v1.3.38:
+Changes since v1.3.39:
 
-- Bump the system group with 1 update ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Bump the ktsu group with 1 update ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump the ktsu group with 2 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
 
