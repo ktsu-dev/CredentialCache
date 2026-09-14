@@ -61,6 +61,51 @@ public class CredentialCacheTests
 	}
 
 	[TestMethod]
+	public void AddOrReplaceDoesNotCacheCredentialWhenStoreSaveThrows()
+	{
+		ThrowingCredentialStore store = new() { ThrowOnSave = true };
+		using CredentialCache cache = new(store);
+		PersonaGUID guid = CredentialCache.CreatePersonaGUID();
+
+		Assert.Throws<CredentialStoreException>(() => cache.AddOrReplace(guid, new CredentialWithNothing()));
+
+		Assert.IsFalse(
+			cache.TryGet(guid, out Credential? credential),
+			"A credential the store refused to persist must not be served from the in-memory cache");
+		Assert.IsNull(credential);
+	}
+
+	[TestMethod]
+	public void AddOrReplaceKeepsThePersistedCredentialWhenReplacementFailsToSave()
+	{
+		ThrowingCredentialStore store = new();
+		using CredentialCache cache = new(store);
+		PersonaGUID guid = CredentialCache.CreatePersonaGUID();
+		CredentialWithUsernamePassword persisted = new()
+		{
+			Username = SemanticString<CredentialUsername>.Create("alice"),
+			Password = SemanticString<CredentialPassword>.Create("hunter2"),
+		};
+		CredentialWithUsernamePassword replacement = new()
+		{
+			Username = SemanticString<CredentialUsername>.Create("alice"),
+			Password = SemanticString<CredentialPassword>.Create("oversized"),
+		};
+
+		cache.AddOrReplace(guid, persisted);
+		store.ThrowOnSave = true;
+		Assert.Throws<CredentialStoreException>(() => cache.AddOrReplace(guid, replacement));
+
+		Assert.IsTrue(cache.TryGet(guid, out Credential? credential));
+		CredentialWithUsernamePassword? typed = credential as CredentialWithUsernamePassword;
+		Assert.IsNotNull(typed);
+		Assert.AreEqual(
+			"hunter2",
+			typed!.Password.ToString(),
+			"The cache must keep the credential the store actually holds, not the one whose save failed");
+	}
+
+	[TestMethod]
 	public void RemoveDeletesCredentialFromBothLayers()
 	{
 		InMemoryCredentialStore store = new();
@@ -266,6 +311,32 @@ public class CredentialCacheTests
 public class CredentialWithNothingFactory : ICredentialFactory<CredentialWithNothing>
 {
 	public CredentialWithNothing Create() => new();
+}
+
+/// <summary>
+/// An in-memory store whose <see cref="Save"/> can be made to fail on demand, standing in
+/// for a native store that rejects a write (oversized blob, transient keychain failure).
+/// </summary>
+public sealed class ThrowingCredentialStore : ICredentialStore
+{
+	private readonly InMemoryCredentialStore _inner = new();
+
+	public bool ThrowOnSave { get; set; }
+
+	public string Name => "Throwing";
+
+	public bool TryLoad(PersonaGUID persona, out Credential? credential) => _inner.TryLoad(persona, out credential);
+
+	public void Save(PersonaGUID persona, Credential credential)
+	{
+		if (ThrowOnSave)
+		{
+			throw new CredentialStoreException("Simulated store failure.");
+		}
+		_inner.Save(persona, credential);
+	}
+
+	public bool Remove(PersonaGUID persona) => _inner.Remove(persona);
 }
 
 public class AnotherCredential : Credential { }
