@@ -1,6 +1,4 @@
-## v1.3.43 (patch)
+## v1.3.43
 
-Changes since v1.3.42:
-
-- fix: persist a credential before caching it in AddOrReplace [patch] ([@matt-edmondson](https://github.com/matt-edmondson))
+No significant changes detected since v1.3.43.
 
