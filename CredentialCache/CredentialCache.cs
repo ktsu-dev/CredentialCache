@@ -141,14 +141,19 @@ public sealed class CredentialCache : IDisposable
 	/// <summary>
 	/// Adds or replaces the credential for <paramref name="persona"/> and persists it.
 	/// </summary>
+	/// <remarks>
+	/// The credential is persisted before the in-memory cache is updated, so a store
+	/// that throws leaves the cache untouched rather than serving a credential that
+	/// was never written to the backing store.
+	/// </remarks>
 	public void AddOrReplace(PersonaGUID persona, Credential credential)
 	{
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
 		ThrowIfDisposed();
 
-		_credentials[persona] = credential;
 		Store.Save(persona, credential);
+		_credentials[persona] = credential;
 	}
 
 	/// <summary>
