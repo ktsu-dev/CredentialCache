@@ -1,6 +1,6 @@
-## v1.3.42 (patch)
+## v1.3.43 (patch)
 
-Changes since v1.3.41:
+Changes since v1.3.42:
 
-- ci: adopt the consolidated .NET workflow [patch] ([@Claude](https://github.com/Claude))
+- fix: persist a credential before caching it in AddOrReplace [patch] ([@matt-edmondson](https://github.com/matt-edmondson))
 
