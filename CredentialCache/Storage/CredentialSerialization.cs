@@ -2,6 +2,7 @@
 
 namespace ktsu.CredentialCache.Storage;
 
+using System.Security.Cryptography;
 using System.Text.Json;
 using ktsu.RoundTripStringJsonConverter;
 
@@ -58,6 +59,49 @@ public static class CredentialSerialization
 		{
 			return null;
 		}
+	}
+
+	/// <summary>
+	/// Deserializes a credential from a UTF-8 JSON byte array and then overwrites
+	/// <paramref name="utf8Json"/> with zeros, whether or not deserialization succeeds.
+	/// </summary>
+	/// <remarks>
+	/// Platform stores copy the stored secret into a managed array in order to
+	/// deserialize it. That array holds plaintext, and left alone it lingers on the
+	/// managed heap - subject to GC promotion and compaction - until it is eventually
+	/// collected, where it can still be read out of a crash dump. Store implementations
+	/// should read through this helper rather than calling <see cref="Deserialize(byte[])"/>
+	/// directly, so no plaintext copy outlives the call.
+	/// </remarks>
+	internal static Credential? DeserializeAndScrub(byte[] utf8Json)
+	{
+		if (utf8Json is null)
+		{
+			return null;
+		}
+
+		try
+		{
+			return Deserialize(utf8Json);
+		}
+		finally
+		{
+			Zero(utf8Json);
+		}
+	}
+
+	/// <summary>
+	/// Overwrites <paramref name="buffer"/> with zeros in a way the runtime cannot
+	/// discard as a dead store.
+	/// </summary>
+	internal static void Zero(byte[] buffer)
+	{
+		if (buffer is null || buffer.Length == 0)
+		{
+			return;
+		}
+
+		CryptographicOperations.ZeroMemory(buffer);
 	}
 
 	/// <summary>

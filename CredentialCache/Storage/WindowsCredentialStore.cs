@@ -57,7 +57,7 @@ internal sealed class WindowsCredentialStore : ISearchableCredentialStore
 
 			byte[] blob = new byte[cred.CredentialBlobSize];
 			Marshal.Copy(cred.CredentialBlob, blob, 0, blob.Length);
-			credential = CredentialSerialization.Deserialize(blob);
+			credential = CredentialSerialization.DeserializeAndScrub(blob);
 			return credential is not null;
 		}
 		finally
@@ -80,17 +80,18 @@ internal sealed class WindowsCredentialStore : ISearchableCredentialStore
 				$"{NativeMethods.CRED_MAX_CREDENTIAL_BLOB_SIZE} bytes (was {blob.Length}).");
 		}
 
-		IntPtr blobPtr = Marshal.AllocHGlobal(blob.Length);
 		try
 		{
-			Marshal.Copy(blob, 0, blobPtr, blob.Length);
+			// The unmanaged copy handed to CredWriteW is plaintext; NativeSecretBuffer
+			// zeroes it before freeing it, which Marshal.FreeHGlobal alone does not.
+			using NativeSecretBuffer nativeBlob = NativeSecretBuffer.CopyOf(blob);
 
 			NativeMethods.CREDENTIAL native = new()
 			{
 				Type = NativeMethods.CRED_TYPE_GENERIC,
 				TargetName = TargetFor(persona),
-				CredentialBlob = blobPtr,
-				CredentialBlobSize = blob.Length,
+				CredentialBlob = nativeBlob.Pointer,
+				CredentialBlobSize = nativeBlob.Length,
 				Persist = NativeMethods.CRED_PERSIST_LOCAL_MACHINE,
 				UserName = Environment.UserName,
 			};
@@ -103,8 +104,7 @@ internal sealed class WindowsCredentialStore : ISearchableCredentialStore
 		}
 		finally
 		{
-			Marshal.FreeHGlobal(blobPtr);
-			Array.Clear(blob, 0, blob.Length);
+			CredentialSerialization.Zero(blob);
 		}
 	}
 

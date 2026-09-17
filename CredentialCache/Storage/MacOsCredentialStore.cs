@@ -57,8 +57,7 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 		{
 			byte[] blob = new byte[length];
 			Marshal.Copy(passwordPtr, blob, 0, (int)length);
-			credential = CredentialSerialization.Deserialize(blob);
-			Array.Clear(blob, 0, blob.Length);
+			credential = CredentialSerialization.DeserializeAndScrub(blob);
 			return credential is not null;
 		}
 		finally
@@ -131,7 +130,7 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 		}
 		finally
 		{
-			Array.Clear(blob, 0, blob.Length);
+			CredentialSerialization.Zero(blob);
 		}
 	}
 
