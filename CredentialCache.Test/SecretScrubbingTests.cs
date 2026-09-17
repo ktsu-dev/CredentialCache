@@ -49,11 +49,11 @@ public class SecretScrubbingTests
 	public void DeserializeAndScrubZeroesTheManagedCopy()
 	{
 		byte[] blob = SerializedCredential();
-		CollectionAssert.AreNotEqual(new byte[blob.Length], blob, "Precondition: the blob starts out as plaintext.");
+		Assert.AreNotSequenceEqual(new byte[blob.Length], blob, "Precondition: the blob starts out as plaintext.");
 
 		_ = CredentialSerialization.DeserializeAndScrub(blob);
 
-		CollectionAssert.AreEqual(new byte[blob.Length], blob,
+		Assert.AreSequenceEqual(new byte[blob.Length], blob,
 			"The plaintext blob must be zeroed once it has been deserialized.");
 	}
 
@@ -67,7 +67,7 @@ public class SecretScrubbingTests
 		Credential? credential = CredentialSerialization.DeserializeAndScrub(blob);
 
 		Assert.IsNull(credential);
-		CollectionAssert.AreEqual(new byte[blob.Length], blob);
+		Assert.AreSequenceEqual(new byte[blob.Length], blob);
 	}
 
 	[TestMethod]
@@ -79,7 +79,7 @@ public class SecretScrubbingTests
 
 		Assert.AreEqual(blob.Length, buffer.Length);
 		Assert.AreNotEqual(IntPtr.Zero, buffer.Pointer);
-		CollectionAssert.AreEqual(blob, ReadUnmanaged(buffer));
+		Assert.AreSequenceEqual(blob, ReadUnmanaged(buffer));
 	}
 
 	[TestMethod]
@@ -87,14 +87,14 @@ public class SecretScrubbingTests
 	{
 		byte[] blob = SerializedCredential();
 		using NativeSecretBuffer buffer = NativeSecretBuffer.CopyOf(blob);
-		CollectionAssert.AreEqual(blob, ReadUnmanaged(buffer), "Precondition: the unmanaged copy is plaintext.");
+		Assert.AreSequenceEqual(blob, ReadUnmanaged(buffer), "Precondition: the unmanaged copy is plaintext.");
 
 		buffer.Zero();
 
 		// Read back before Dispose - reading freed memory would be undefined, so the
 		// scrub has to be observable while the allocation is still live. This is the
 		// exact ordering Dispose relies on: zero, then free.
-		CollectionAssert.AreEqual(new byte[blob.Length], ReadUnmanaged(buffer),
+		Assert.AreSequenceEqual(new byte[blob.Length], ReadUnmanaged(buffer),
 			"The unmanaged copy must be zeroed before the memory is released.");
 	}
 
@@ -107,7 +107,7 @@ public class SecretScrubbingTests
 		buffer.Zero();
 		buffer.Zero();
 
-		CollectionAssert.AreEqual(new byte[blob.Length], ReadUnmanaged(buffer));
+		Assert.AreSequenceEqual(new byte[blob.Length], ReadUnmanaged(buffer));
 	}
 
 	[TestMethod]
@@ -165,13 +165,20 @@ public class SecretScrubbingTests
 
 		CredentialSerialization.Zero(blob);
 
-		CollectionAssert.AreEqual(new byte[blob.Length], blob);
+		Assert.AreSequenceEqual(new byte[blob.Length], blob);
 	}
 
 	[TestMethod]
 	public void ZeroToleratesEmptyAndNullBuffers()
 	{
-		CredentialSerialization.Zero([]);
+		byte[] empty = [];
+
+		// The guard clauses exist so a store can scrub whatever it has without
+		// length- or null-checking first. Both calls returning rather than throwing
+		// is the behaviour under test; an exception from either fails the test.
+		CredentialSerialization.Zero(empty);
 		CredentialSerialization.Zero(null!);
+
+		Assert.IsEmpty(empty);
 	}
 }
