@@ -243,6 +243,52 @@ public class SecretScrubbingTests
 	}
 
 	[TestMethod]
+	public void OfCredentialProducesTheSerializedCredentialNulTerminated()
+	{
+		using NativeSecretBuffer buffer = NativeSecretBuffer.OfCredential(new CredentialWithToken
+		{
+			Token = SemanticString<CredentialToken>.Create("plaintext-token-to-scrub"),
+		});
+
+		// Byte-for-byte what a C-string native API should receive: the same JSON the other two
+		// stores hand over as a pointer and a length, plus the terminator.
+		Assert.AreSequenceEqual([.. SerializedCredential(), (byte)0], ReadUnmanaged(buffer));
+	}
+
+	[TestMethod]
+	public void OfCredentialAndReadCredentialRoundTripACredential()
+	{
+		using NativeSecretBuffer buffer = NativeSecretBuffer.OfCredential(new CredentialWithToken
+		{
+			Token = SemanticString<CredentialToken>.Create("plaintext-token-to-scrub"),
+		});
+
+		Credential? credential = NativeSecretBuffer.ReadCredential(buffer.Pointer);
+
+		CredentialWithToken? typed = credential as CredentialWithToken;
+		Assert.IsNotNull(typed);
+		Assert.AreEqual("plaintext-token-to-scrub", typed!.Token.ToString());
+	}
+
+	[TestMethod]
+	public void OfCredentialRejectsANullCredential() =>
+		Assert.ThrowsExactly<ArgumentNullException>(() => NativeSecretBuffer.OfCredential(null!));
+
+	[TestMethod]
+	public void ReadCredentialReturnsNullWhereThereIsNoCredentialToRead()
+	{
+		using NativeSecretBuffer empty = NativeSecretBuffer.CopyOf([0]);
+		using NativeSecretBuffer garbage = NativeSecretBuffer.NulTerminatedCopyOf([.. "{ not a credential"u8]);
+
+		// A store treats null as "nothing stored for this persona", so all three of these have to
+		// answer null rather than throwing: no entry, an empty entry, and an entry that is not
+		// parseable as a credential.
+		Assert.IsNull(NativeSecretBuffer.ReadCredential(IntPtr.Zero));
+		Assert.IsNull(NativeSecretBuffer.ReadCredential(empty.Pointer));
+		Assert.IsNull(NativeSecretBuffer.ReadCredential(garbage.Pointer));
+	}
+
+	[TestMethod]
 	public void ZeroOverwritesTheBuffer()
 	{
 		byte[] blob = SerializedCredential();

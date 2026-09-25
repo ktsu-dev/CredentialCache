@@ -66,17 +66,11 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 
 		try
 		{
-			// The bytes go straight into a managed array rather than through
-			// Marshal.PtrToStringUTF8: an immutable string cannot be scrubbed, so the
-			// plaintext would outlive the call. This is the same byte-array-and-scrub path
-			// the Windows and macOS stores take; libsecret just hands back a C string
-			// instead of a pointer and a length.
-			byte[] blob = NativeSecretBuffer.ReadNulTerminated(passwordPtr);
-			if (blob.Length == 0)
-			{
-				return false;
-			}
-			credential = CredentialSerialization.DeserializeAndScrub(blob);
+			// Read as bytes and scrubbed, never through Marshal.PtrToStringUTF8: an immutable
+			// string cannot be scrubbed, so the plaintext would outlive the call. Same
+			// byte-array-and-scrub path the Windows and macOS stores take; libsecret just hands
+			// back a C string rather than a pointer and a length.
+			credential = NativeSecretBuffer.ReadCredential(passwordPtr);
 			return credential is not null;
 		}
 		finally
@@ -92,39 +86,29 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
 
+		// An unmanaged nul-terminated copy this code owns and zeroes, not a managed string:
+		// marshalling a string would put the plaintext on the managed heap where it cannot be
+		// scrubbed, and leave the runtime's own native copy to be freed unscrubbed.
+		using NativeSecretBuffer value = NativeSecretBuffer.OfCredential(credential);
 		string label = $"{_serviceName}:{persona}";
-		byte[] blob = CredentialSerialization.Serialize(credential);
 
-		try
+		IntPtr error = IntPtr.Zero;
+		bool stored = NativeMethods.secret_password_store_sync(
+			Schema.Handle,
+			IntPtr.Zero,
+			label,
+			value.Pointer,
+			IntPtr.Zero,
+			ref error,
+			"service", _serviceName,
+			"account", persona.ToString(),
+			IntPtr.Zero);
+
+		ThrowIfError(error, "secret_password_store_sync");
+
+		if (!stored)
 		{
-			// The password is handed over as an unmanaged nul-terminated copy this code
-			// owns, not as a managed string. Marshalling a string would put the plaintext
-			// on the managed heap, where it cannot be scrubbed, and would leave the
-			// runtime's own native copy to be freed unscrubbed.
-			using NativeSecretBuffer nativeValue = NativeSecretBuffer.NulTerminatedCopyOf(blob);
-
-			IntPtr error = IntPtr.Zero;
-			bool stored = NativeMethods.secret_password_store_sync(
-				Schema.Handle,
-				IntPtr.Zero,
-				label,
-				nativeValue.Pointer,
-				IntPtr.Zero,
-				ref error,
-				"service", _serviceName,
-				"account", persona.ToString(),
-				IntPtr.Zero);
-
-			ThrowIfError(error, "secret_password_store_sync");
-
-			if (!stored)
-			{
-				throw new CredentialStoreException($"secret_password_store_sync returned false for '{persona}'.");
-			}
-		}
-		finally
-		{
-			CredentialSerialization.Zero(blob);
+			throw new CredentialStoreException($"secret_password_store_sync returned false for '{persona}'.");
 		}
 	}
 

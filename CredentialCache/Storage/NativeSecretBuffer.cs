@@ -99,6 +99,54 @@ internal sealed class NativeSecretBuffer : IDisposable
 	}
 
 	/// <summary>
+	/// Serializes <paramref name="credential"/> and copies it into unmanaged memory as a
+	/// nul-terminated UTF-8 JSON string, for a native API that takes a C string.
+	/// </summary>
+	/// <param name="credential">The credential to persist.</param>
+	/// <returns>A buffer owning the unmanaged copy, which the caller must dispose.</returns>
+	/// <remarks>
+	/// Both managed copies made along the way — the serialized bytes and the nul-terminated
+	/// array — are zeroed before this returns, on the throwing path as well. Owning the whole
+	/// sequence here rather than in each store is what keeps it exercised by tests: a store's
+	/// own body only runs on its own operating system.
+	/// </remarks>
+	internal static NativeSecretBuffer OfCredential(Credential credential)
+	{
+		ArgumentNullException.ThrowIfNull(credential);
+
+		byte[] blob = CredentialSerialization.Serialize(credential);
+		try
+		{
+			return NulTerminatedCopyOf(blob);
+		}
+		finally
+		{
+			CredentialSerialization.Zero(blob);
+		}
+	}
+
+	/// <summary>
+	/// Reads the nul-terminated UTF-8 JSON at <paramref name="pointer"/> and deserializes it,
+	/// scrubbing the managed copy it read.
+	/// </summary>
+	/// <param name="pointer">A pointer to a nul-terminated plaintext credential blob.</param>
+	/// <returns>
+	/// The credential, or <see langword="null"/> when <paramref name="pointer"/> addresses
+	/// nothing, an empty string, or bytes that are not a known credential.
+	/// </returns>
+	/// <remarks>
+	/// The counterpart of <see cref="OfCredential"/>, and the read path a store whose native API
+	/// returns a C string should use. Nothing here is ever a managed <see cref="string"/>: one
+	/// would hold the plaintext until the GC happened to collect it and could not be scrubbed
+	/// at all.
+	/// </remarks>
+	internal static Credential? ReadCredential(IntPtr pointer)
+	{
+		byte[] blob = ReadNulTerminated(pointer);
+		return blob.Length == 0 ? null : CredentialSerialization.DeserializeAndScrub(blob);
+	}
+
+	/// <summary>
 	/// Copies the nul-terminated bytes at <paramref name="pointer"/> into a managed array,
 	/// excluding the terminator.
 	/// </summary>

@@ -34,9 +34,16 @@ public class NativeStoreScrubbingWiringTests
 	private static readonly MethodInfo Serialize = Helper(nameof(CredentialSerialization.Serialize));
 	private static readonly MethodInfo SerializeToString = Helper(nameof(CredentialSerialization.SerializeToString));
 
+	private static readonly MethodInfo ReadCredential = Buffer(nameof(NativeSecretBuffer.ReadCredential));
+	private static readonly MethodInfo OfCredential = Buffer(nameof(NativeSecretBuffer.OfCredential));
+
 	private static MethodInfo Helper(string name) =>
 		typeof(CredentialSerialization).GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
 			?? throw new InvalidOperationException($"{nameof(CredentialSerialization)}.{name} not found.");
+
+	private static MethodInfo Buffer(string name) =>
+		typeof(NativeSecretBuffer).GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+			?? throw new InvalidOperationException($"{nameof(NativeSecretBuffer)}.{name} not found.");
 
 	private static IEnumerable<Type> NativeStores() =>
 	[
@@ -93,10 +100,14 @@ public class NativeStoreScrubbingWiringTests
 		{
 			MethodInfo tryLoad = Method(store, nameof(ICredentialStore.TryLoad));
 
+			// Either directly, or through NativeSecretBuffer.ReadCredential, which the test
+			// below pins to the same helper. A store whose native API hands back a C string
+			// reads through that wrapper so the length-finding is covered by tests rather
+			// than sitting in a method body that only runs on one operating system.
 			Assert.IsTrue(
-				Calls(tryLoad, DeserializeAndScrub),
-				$"{store.Name}.TryLoad must deserialize through DeserializeAndScrub so the plaintext "
-				+ "copy it read is zeroed before the call returns.");
+				Calls(tryLoad, DeserializeAndScrub) || Calls(tryLoad, ReadCredential),
+				$"{store.Name}.TryLoad must deserialize through DeserializeAndScrub, directly or via "
+				+ "NativeSecretBuffer.ReadCredential, so the plaintext copy it read is zeroed.");
 			Assert.IsFalse(
 				Calls(tryLoad, DeserializeFromString),
 				$"{store.Name}.TryLoad must not deserialize from a string: an immutable managed string "
@@ -112,12 +123,38 @@ public class NativeStoreScrubbingWiringTests
 			MethodInfo save = Method(store, nameof(ICredentialStore.Save));
 
 			Assert.IsTrue(
-				Calls(save, Serialize),
-				$"{store.Name}.Save must serialize to a byte array it can zero once the native call returns.");
+				Calls(save, Serialize) || Calls(save, OfCredential),
+				$"{store.Name}.Save must serialize to bytes it can zero, directly or via "
+				+ "NativeSecretBuffer.OfCredential.");
 			Assert.IsFalse(
 				Calls(save, SerializeToString),
 				$"{store.Name}.Save must not serialize to a string: the plaintext would sit on the managed "
 				+ "heap unscrubbable, and marshalling it would add a native copy freed without scrubbing.");
 		}
+	}
+
+	/// <summary>
+	/// The second hop of the two assertions above. Accepting the wrapper as equivalent to a
+	/// direct call is only sound while the wrapper itself uses the scrubbing helper, so that is
+	/// asserted rather than assumed.
+	/// </summary>
+	[TestMethod]
+	public void TheSharedCredentialWrappersUseTheScrubbingHelpers()
+	{
+		Assert.IsTrue(
+			Calls(ReadCredential, DeserializeAndScrub),
+			"NativeSecretBuffer.ReadCredential must deserialize through DeserializeAndScrub; the store "
+			+ "assertions above accept it as a stand-in for calling that helper directly.");
+		Assert.IsFalse(
+			Calls(ReadCredential, DeserializeFromString),
+			"NativeSecretBuffer.ReadCredential must not deserialize from a string.");
+
+		Assert.IsTrue(
+			Calls(OfCredential, Serialize),
+			"NativeSecretBuffer.OfCredential must serialize to bytes it can zero; the store assertions "
+			+ "above accept it as a stand-in for calling that helper directly.");
+		Assert.IsFalse(
+			Calls(OfCredential, SerializeToString),
+			"NativeSecretBuffer.OfCredential must not serialize to a string.");
 	}
 }
