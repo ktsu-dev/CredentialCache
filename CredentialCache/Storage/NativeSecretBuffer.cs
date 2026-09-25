@@ -61,6 +61,84 @@ internal sealed class NativeSecretBuffer : IDisposable
 	}
 
 	/// <summary>
+	/// Copies <paramref name="source"/> into newly allocated unmanaged memory followed by a
+	/// single nul byte, for a native API that takes a C string rather than a pointer and a
+	/// length.
+	/// </summary>
+	/// <param name="source">The plaintext bytes to copy. Must contain no nul byte of its own.</param>
+	/// <returns>A buffer owning the unmanaged copy, which the caller must dispose.</returns>
+	/// <remarks>
+	/// <see cref="Length"/> covers the terminator, so <see cref="Zero"/> scrubs the whole
+	/// allocation. Marshalling a managed string would be the obvious alternative and is the
+	/// thing to avoid: the runtime frees the native copy it makes without scrubbing it, and
+	/// the immutable managed string it came from cannot be scrubbed at all.
+	/// </remarks>
+	internal static NativeSecretBuffer NulTerminatedCopyOf(byte[] source)
+	{
+		ArgumentNullException.ThrowIfNull(source);
+
+		if (Array.IndexOf(source, (byte)0) >= 0)
+		{
+			throw new ArgumentException(
+				"A nul-terminated copy cannot carry a nul byte of its own; the native call would read a truncated secret.",
+				nameof(source));
+		}
+
+		byte[] terminated = new byte[source.Length + 1];
+		try
+		{
+			Buffer.BlockCopy(source, 0, terminated, 0, source.Length);
+			return CopyOf(terminated);
+		}
+		finally
+		{
+			// terminated is a second plaintext copy on the managed heap and has served its
+			// purpose by here, whether CopyOf succeeded or threw.
+			CredentialSerialization.Zero(terminated);
+		}
+	}
+
+	/// <summary>
+	/// Copies the nul-terminated bytes at <paramref name="pointer"/> into a managed array,
+	/// excluding the terminator.
+	/// </summary>
+	/// <param name="pointer">A pointer to nul-terminated plaintext in unmanaged memory.</param>
+	/// <returns>
+	/// The bytes before the first nul, or an empty array when <paramref name="pointer"/> is
+	/// <see cref="IntPtr.Zero"/> or addresses an empty string.
+	/// </returns>
+	/// <remarks>
+	/// The caller owns the returned array and is expected to hand it to
+	/// <see cref="CredentialSerialization.DeserializeAndScrub(byte[])"/>, which scrubs it.
+	/// This exists so a store whose native API returns a C string can take the same
+	/// byte-array-and-scrub path as one that returns a pointer and a length, instead of
+	/// going through <see cref="Marshal.PtrToStringUTF8(IntPtr)"/> and stranding the
+	/// plaintext in an immutable managed string.
+	/// </remarks>
+	internal static byte[] ReadNulTerminated(IntPtr pointer)
+	{
+		if (pointer == IntPtr.Zero)
+		{
+			return [];
+		}
+
+		int length = 0;
+		while (Marshal.ReadByte(pointer, length) != 0)
+		{
+			length++;
+		}
+
+		if (length == 0)
+		{
+			return [];
+		}
+
+		byte[] copy = new byte[length];
+		Marshal.Copy(pointer, copy, 0, length);
+		return copy;
+	}
+
+	/// <summary>
 	/// Overwrites the unmanaged copy with zeros while the memory is still allocated.
 	/// Idempotent, and a no-op once the buffer has been disposed.
 	/// </summary>

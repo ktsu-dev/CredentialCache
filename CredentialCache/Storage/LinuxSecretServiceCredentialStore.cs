@@ -12,10 +12,19 @@ using System.Runtime.Versioning;
 /// <c>service</c> and <c>account</c> identifying it.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Requires libsecret to be installed on the host. On headless systems without
 /// a running secret-service implementation (e.g. minimal containers, build agents)
 /// this provider will fail at the first operation; consumers should detect this
 /// and fall back to <see cref="InMemoryCredentialStore"/> if appropriate.
+/// </para>
+/// <para>
+/// Plaintext credential bytes are scrubbed on the same terms as the Windows and macOS
+/// stores: every copy this code owns is a <see langword="byte"/> array or a
+/// <see cref="NativeSecretBuffer"/> that is zeroed on the way out, and no plaintext is
+/// ever marshalled through a managed <see cref="string"/>. libsecret scrubs its own
+/// copy in <c>secret_password_free</c>.
+/// </para>
 /// </remarks>
 [SupportedOSPlatform("linux")]
 internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
@@ -57,16 +66,22 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 
 		try
 		{
-			string? value = Marshal.PtrToStringUTF8(passwordPtr);
-			if (string.IsNullOrEmpty(value))
+			// The bytes go straight into a managed array rather than through
+			// Marshal.PtrToStringUTF8: an immutable string cannot be scrubbed, so the
+			// plaintext would outlive the call. This is the same byte-array-and-scrub path
+			// the Windows and macOS stores take; libsecret just hands back a C string
+			// instead of a pointer and a length.
+			byte[] blob = NativeSecretBuffer.ReadNulTerminated(passwordPtr);
+			if (blob.Length == 0)
 			{
 				return false;
 			}
-			credential = CredentialSerialization.DeserializeFromString(value);
+			credential = CredentialSerialization.DeserializeAndScrub(blob);
 			return credential is not null;
 		}
 		finally
 		{
+			// secret_password_free wipes libsecret's own copy before releasing it.
 			NativeMethods.secret_password_free(passwordPtr);
 		}
 	}
@@ -77,26 +92,39 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
 
-		string value = CredentialSerialization.SerializeToString(credential);
 		string label = $"{_serviceName}:{persona}";
+		byte[] blob = CredentialSerialization.Serialize(credential);
 
-		IntPtr error = IntPtr.Zero;
-		bool stored = NativeMethods.secret_password_store_sync(
-			Schema.Handle,
-			IntPtr.Zero,
-			label,
-			value,
-			IntPtr.Zero,
-			ref error,
-			"service", _serviceName,
-			"account", persona.ToString(),
-			IntPtr.Zero);
-
-		ThrowIfError(error, "secret_password_store_sync");
-
-		if (!stored)
+		try
 		{
-			throw new CredentialStoreException($"secret_password_store_sync returned false for '{persona}'.");
+			// The password is handed over as an unmanaged nul-terminated copy this code
+			// owns, not as a managed string. Marshalling a string would put the plaintext
+			// on the managed heap, where it cannot be scrubbed, and would leave the
+			// runtime's own native copy to be freed unscrubbed.
+			using NativeSecretBuffer nativeValue = NativeSecretBuffer.NulTerminatedCopyOf(blob);
+
+			IntPtr error = IntPtr.Zero;
+			bool stored = NativeMethods.secret_password_store_sync(
+				Schema.Handle,
+				IntPtr.Zero,
+				label,
+				nativeValue.Pointer,
+				IntPtr.Zero,
+				ref error,
+				"service", _serviceName,
+				"account", persona.ToString(),
+				IntPtr.Zero);
+
+			ThrowIfError(error, "secret_password_store_sync");
+
+			if (!stored)
+			{
+				throw new CredentialStoreException($"secret_password_store_sync returned false for '{persona}'.");
+			}
+		}
+		finally
+		{
+			CredentialSerialization.Zero(blob);
 		}
 	}
 
@@ -175,12 +203,15 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		[DllImport(Lib, CharSet = CharSet.Ansi)]
 		internal static extern void secret_password_free(IntPtr password);
 
+		// password is an IntPtr, not a string, so the plaintext is never marshalled by the
+		// runtime into a copy it frees without scrubbing. The caller owns a
+		// NativeSecretBuffer for it.
 		[DllImport(Lib, CharSet = CharSet.Ansi)]
 		internal static extern bool secret_password_store_sync(
 			IntPtr schema,
 			IntPtr collection,
 			string label,
-			string password,
+			IntPtr password,
 			IntPtr cancellable,
 			ref IntPtr error,
 			string attribute1Name, string attribute1Value,

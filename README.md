@@ -152,6 +152,7 @@ else
 - **macOS** uses the user's default login keychain. The first access from an application prompts the user for permission, as with any keychain client.
 - **Linux** requires `libsecret-1` plus an active Secret Service. Headless CI agents typically have neither &mdash; use `InMemoryCredentialStore` there, or set up `dbus-run-session` + `gnome-keyring-daemon` as the `cross-platform.yml` workflow does.
 - All native calls happen on the thread the API is invoked from. The library's in-memory cache is thread-safe (`ConcurrentDictionary`); the native APIs themselves are documented as thread-safe by their respective platform owners, but blocking calls (especially libsecret) are not cheap &mdash; treat `Save` / `Remove` as I/O, not as cheap accessors.
+- All three native stores handle plaintext on the same terms: every copy the library owns is a byte array or an unmanaged buffer that is overwritten with zeros before it is released, and no secret is ever routed through a managed `string`, which is immutable and so cannot be scrubbed at all. A credential you hold yourself is a different matter &mdash; anything you read out of `TryGet` is an ordinary object on the managed heap and its lifetime is yours.
 
 ## API summary
 
