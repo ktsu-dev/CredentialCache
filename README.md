@@ -152,6 +152,7 @@ else
 - **macOS** uses the user's default login keychain. The first access from an application prompts the user for permission, as with any keychain client.
 - **Linux** requires `libsecret-1` plus an active Secret Service. Headless CI agents typically have neither &mdash; use `InMemoryCredentialStore` there, or set up `dbus-run-session` + `gnome-keyring-daemon` as the `cross-platform.yml` workflow does.
 - All native calls happen on the thread the API is invoked from. The library's in-memory cache is thread-safe (`ConcurrentDictionary`); the native APIs themselves are documented as thread-safe by their respective platform owners, but blocking calls (especially libsecret) are not cheap &mdash; treat `Save` / `Remove` as I/O, not as cheap accessors.
+- `AddOrReplace`, `Remove`, and the store-loading half of `TryGet` each update the cache *and* the store, so they hold a lock on the persona for the duration rather than relying on the dictionary alone. Concurrent calls for the same persona therefore run one at a time and the two always end up agreeing; concurrent calls for different personas are unaffected. Because that lock is held across a store call, a `Remove` and an `AddOrReplace` racing on one persona serialize at the speed of the native store &mdash; another reason to treat them as I/O.
 
 ## API summary
 

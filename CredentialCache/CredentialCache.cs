@@ -27,8 +27,15 @@ public sealed class CredentialCache : IDisposable
 	private static CredentialCache? _instance;
 	private static ICredentialStore? _configuredStore;
 
+	/// <summary>
+	/// The number of locks mutations of one persona are striped across. A power of two,
+	/// so <see cref="LockFor"/> can mask rather than divide.
+	/// </summary>
+	private const int PersonaLockStripes = 64;
+
 	private readonly ConcurrentDictionary<PersonaGUID, Credential> _credentials = new();
 	private readonly ConcurrentDictionary<Type, ICredentialFactory> _factories = new();
+	private readonly Lock[] _personaLocks = CreatePersonaLocks();
 	private bool _disposed;
 
 	/// <summary>
@@ -114,10 +121,39 @@ public sealed class CredentialCache : IDisposable
 	public static PersonaGUID CreatePersonaGUID() =>
 		SemanticString<PersonaGUID>.Create(Guid.NewGuid().ToString());
 
+	private static Lock[] CreatePersonaLocks()
+	{
+		Lock[] locks = new Lock[PersonaLockStripes];
+		for (int i = 0; i < locks.Length; i++)
+		{
+			locks[i] = new Lock();
+		}
+		return locks;
+	}
+
+	/// <summary>
+	/// Returns the lock guarding mutations of <paramref name="persona"/>'s cache entry
+	/// and store entry as one unit.
+	/// </summary>
+	/// <remarks>
+	/// Striped rather than one lock per persona: a per-persona dictionary of locks would
+	/// grow for the lifetime of the process with nothing to key its eviction on. Two
+	/// personas landing on the same stripe serialize when they need not, which costs
+	/// contention and never correctness.
+	/// </remarks>
+	private Lock LockFor(PersonaGUID persona) =>
+		_personaLocks[(uint)persona.GetHashCode() & (PersonaLockStripes - 1)];
+
 	/// <summary>
 	/// Attempts to retrieve the credential associated with <paramref name="persona"/>,
 	/// loading it from the backing store if it has not yet been cached in memory.
 	/// </summary>
+	/// <remarks>
+	/// A cache hit is answered without taking a lock. Populating the cache from the store
+	/// is not, because it is a mutation of the same pair of state a concurrent
+	/// <see cref="Remove"/> is retiring: loading a credential and then caching it either
+	/// side of a removal would put back exactly what the removal took out.
+	/// </remarks>
 	public bool TryGet(PersonaGUID persona, out Credential? credential)
 	{
 		ArgumentNullException.ThrowIfNull(persona);
@@ -128,10 +164,18 @@ public sealed class CredentialCache : IDisposable
 			return true;
 		}
 
-		if (Store.TryLoad(persona, out Credential? loaded) && loaded is not null)
+		lock (LockFor(persona))
 		{
-			credential = _credentials.GetOrAdd(persona, loaded);
-			return true;
+			if (_credentials.TryGetValue(persona, out credential))
+			{
+				return true;
+			}
+
+			if (Store.TryLoad(persona, out Credential? loaded) && loaded is not null)
+			{
+				credential = _credentials.GetOrAdd(persona, loaded);
+				return true;
+			}
 		}
 
 		credential = null;
@@ -144,7 +188,9 @@ public sealed class CredentialCache : IDisposable
 	/// <remarks>
 	/// The credential is persisted before the in-memory cache is updated, so a store
 	/// that throws leaves the cache untouched rather than serving a credential that
-	/// was never written to the backing store.
+	/// was never written to the backing store. Both writes happen under the persona's
+	/// lock, so a concurrent <see cref="Remove"/> of the same persona cannot land
+	/// between them.
 	/// </remarks>
 	public void AddOrReplace(PersonaGUID persona, Credential credential)
 	{
@@ -152,22 +198,36 @@ public sealed class CredentialCache : IDisposable
 		ArgumentNullException.ThrowIfNull(credential);
 		ThrowIfDisposed();
 
-		Store.Save(persona, credential);
-		_credentials[persona] = credential;
+		lock (LockFor(persona))
+		{
+			Store.Save(persona, credential);
+			_credentials[persona] = credential;
+		}
 	}
 
 	/// <summary>
 	/// Removes the credential associated with <paramref name="persona"/> from both
 	/// the in-memory cache and the backing store.
 	/// </summary>
+	/// <remarks>
+	/// Both removals happen under the persona's lock, and the store is cleared first, so
+	/// this mirrors <see cref="AddOrReplace"/>'s store-then-cache order rather than
+	/// inverting it. Without the lock a concurrent <see cref="AddOrReplace"/> could
+	/// persist and cache a new credential between the two halves of this method, which
+	/// then deleted the newly persisted entry and left the new credential readable from
+	/// memory alone — a removal reporting success while the credential stayed usable.
+	/// </remarks>
 	public bool Remove(PersonaGUID persona)
 	{
 		ArgumentNullException.ThrowIfNull(persona);
 		ThrowIfDisposed();
 
-		bool removedInMemory = _credentials.TryRemove(persona, out _);
-		bool removedFromStore = Store.Remove(persona);
-		return removedInMemory || removedFromStore;
+		lock (LockFor(persona))
+		{
+			bool removedFromStore = Store.Remove(persona);
+			bool removedInMemory = _credentials.TryRemove(persona, out _);
+			return removedInMemory || removedFromStore;
+		}
 	}
 
 	/// <summary>
