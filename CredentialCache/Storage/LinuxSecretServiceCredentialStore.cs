@@ -12,10 +12,19 @@ using System.Runtime.Versioning;
 /// <c>service</c> and <c>account</c> identifying it.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Requires libsecret to be installed on the host. On headless systems without
 /// a running secret-service implementation (e.g. minimal containers, build agents)
 /// this provider will fail at the first operation; consumers should detect this
 /// and fall back to <see cref="InMemoryCredentialStore"/> if appropriate.
+/// </para>
+/// <para>
+/// Plaintext credential bytes are scrubbed on the same terms as the Windows and macOS
+/// stores: every copy this code owns is a <see langword="byte"/> array or a
+/// <see cref="NativeSecretBuffer"/> that is zeroed on the way out, and no plaintext is
+/// ever marshalled through a managed <see cref="string"/>. libsecret scrubs its own
+/// copy in <c>secret_password_free</c>.
+/// </para>
 /// </remarks>
 [SupportedOSPlatform("linux")]
 internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
@@ -57,16 +66,16 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 
 		try
 		{
-			string? value = Marshal.PtrToStringUTF8(passwordPtr);
-			if (string.IsNullOrEmpty(value))
-			{
-				return false;
-			}
-			credential = CredentialSerialization.DeserializeFromString(value);
+			// Read as bytes and scrubbed, never through Marshal.PtrToStringUTF8: an immutable
+			// string cannot be scrubbed, so the plaintext would outlive the call. Same
+			// byte-array-and-scrub path the Windows and macOS stores take; libsecret just hands
+			// back a C string rather than a pointer and a length.
+			credential = NativeSecretBuffer.ReadCredential(passwordPtr);
 			return credential is not null;
 		}
 		finally
 		{
+			// secret_password_free wipes libsecret's own copy before releasing it.
 			NativeMethods.secret_password_free(passwordPtr);
 		}
 	}
@@ -77,7 +86,10 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
 
-		string value = CredentialSerialization.SerializeToString(credential);
+		// An unmanaged nul-terminated copy this code owns and zeroes, not a managed string:
+		// marshalling a string would put the plaintext on the managed heap where it cannot be
+		// scrubbed, and leave the runtime's own native copy to be freed unscrubbed.
+		using NativeSecretBuffer value = NativeSecretBuffer.OfCredential(credential);
 		string label = $"{_serviceName}:{persona}";
 
 		IntPtr error = IntPtr.Zero;
@@ -85,7 +97,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 			Schema.Handle,
 			IntPtr.Zero,
 			label,
-			value,
+			value.Pointer,
 			IntPtr.Zero,
 			ref error,
 			"service", _serviceName,
@@ -175,12 +187,15 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		[DllImport(Lib, CharSet = CharSet.Ansi)]
 		internal static extern void secret_password_free(IntPtr password);
 
+		// password is an IntPtr, not a string, so the plaintext is never marshalled by the
+		// runtime into a copy it frees without scrubbing. The caller owns a
+		// NativeSecretBuffer for it.
 		[DllImport(Lib, CharSet = CharSet.Ansi)]
 		internal static extern bool secret_password_store_sync(
 			IntPtr schema,
 			IntPtr collection,
 			string label,
-			string password,
+			IntPtr password,
 			IntPtr cancellable,
 			ref IntPtr error,
 			string attribute1Name, string attribute1Value,

@@ -159,6 +159,136 @@ public class SecretScrubbingTests
 		Assert.ThrowsExactly<ArgumentNullException>(() => NativeSecretBuffer.CopyOf(null!));
 
 	[TestMethod]
+	public void NulTerminatedCopyOfAppendsTheTerminator()
+	{
+		byte[] blob = SerializedCredential();
+
+		using NativeSecretBuffer buffer = NativeSecretBuffer.NulTerminatedCopyOf(blob);
+
+		Assert.AreEqual(blob.Length + 1, buffer.Length, "The terminator has to be part of the allocation.");
+		Assert.AreSequenceEqual([.. blob, (byte)0], ReadUnmanaged(buffer));
+	}
+
+	[TestMethod]
+	public void NulTerminatedCopyOfZeroesTheWholeAllocationIncludingTheTerminator()
+	{
+		byte[] blob = SerializedCredential();
+		using NativeSecretBuffer buffer = NativeSecretBuffer.NulTerminatedCopyOf(blob);
+
+		buffer.Zero();
+
+		// Length covers the terminator, so a scrub that used the payload length would
+		// leave the last byte alone. Read back before Dispose, as above.
+		Assert.AreSequenceEqual(new byte[blob.Length + 1], ReadUnmanaged(buffer));
+	}
+
+	[TestMethod]
+	public void NulTerminatedCopyOfRejectsASourceCarryingItsOwnNul()
+	{
+		// A native C-string API would read a truncated secret and store it, which fails
+		// silently at save time and surfaces as an unparseable blob on the next load.
+		byte[] blob = [.. "{\"x\":1}"u8, 0, .. "tail"u8];
+
+		ArgumentException thrown = Assert.ThrowsExactly<ArgumentException>(
+			() => NativeSecretBuffer.NulTerminatedCopyOf(blob));
+
+		Assert.AreEqual("source", thrown.ParamName);
+	}
+
+	[TestMethod]
+	public void NulTerminatedCopyOfHandlesAnEmptySource()
+	{
+		using NativeSecretBuffer buffer = NativeSecretBuffer.NulTerminatedCopyOf([]);
+
+		Assert.AreEqual(1, buffer.Length);
+		Assert.AreSequenceEqual(new byte[] { 0 }, ReadUnmanaged(buffer));
+	}
+
+	[TestMethod]
+	public void ReadNulTerminatedCopiesUpToTheTerminatorOnly()
+	{
+		byte[] blob = SerializedCredential();
+		// Trailing bytes past the terminator stand in for whatever else the native
+		// allocation happens to hold; none of it is part of the secret.
+		using NativeSecretBuffer stored = NativeSecretBuffer.CopyOf([.. blob, 0, .. "trailing"u8]);
+
+		byte[] read = NativeSecretBuffer.ReadNulTerminated(stored.Pointer);
+
+		Assert.AreSequenceEqual(blob, read);
+	}
+
+	[TestMethod]
+	public void ReadNulTerminatedRoundTripsACredentialWithoutAManagedString()
+	{
+		// The exact composition a C-string store performs: read the bytes, then scrub
+		// the managed copy. Nothing in between is a string.
+		using NativeSecretBuffer stored = NativeSecretBuffer.NulTerminatedCopyOf(SerializedCredential());
+
+		byte[] read = NativeSecretBuffer.ReadNulTerminated(stored.Pointer);
+		Credential? credential = CredentialSerialization.DeserializeAndScrub(read);
+
+		CredentialWithToken? typed = credential as CredentialWithToken;
+		Assert.IsNotNull(typed);
+		Assert.AreEqual("plaintext-token-to-scrub", typed!.Token.ToString());
+		Assert.AreSequenceEqual(new byte[read.Length], read, "The managed copy must be zeroed once deserialized.");
+	}
+
+	[TestMethod]
+	public void ReadNulTerminatedReturnsEmptyForAnEmptyStringAndForNull()
+	{
+		using NativeSecretBuffer empty = NativeSecretBuffer.CopyOf([0]);
+
+		Assert.IsEmpty(NativeSecretBuffer.ReadNulTerminated(empty.Pointer));
+		Assert.IsEmpty(NativeSecretBuffer.ReadNulTerminated(IntPtr.Zero));
+	}
+
+	[TestMethod]
+	public void OfCredentialProducesTheSerializedCredentialNulTerminated()
+	{
+		using NativeSecretBuffer buffer = NativeSecretBuffer.OfCredential(new CredentialWithToken
+		{
+			Token = SemanticString<CredentialToken>.Create("plaintext-token-to-scrub"),
+		});
+
+		// Byte-for-byte what a C-string native API should receive: the same JSON the other two
+		// stores hand over as a pointer and a length, plus the terminator.
+		Assert.AreSequenceEqual([.. SerializedCredential(), (byte)0], ReadUnmanaged(buffer));
+	}
+
+	[TestMethod]
+	public void OfCredentialAndReadCredentialRoundTripACredential()
+	{
+		using NativeSecretBuffer buffer = NativeSecretBuffer.OfCredential(new CredentialWithToken
+		{
+			Token = SemanticString<CredentialToken>.Create("plaintext-token-to-scrub"),
+		});
+
+		Credential? credential = NativeSecretBuffer.ReadCredential(buffer.Pointer);
+
+		CredentialWithToken? typed = credential as CredentialWithToken;
+		Assert.IsNotNull(typed);
+		Assert.AreEqual("plaintext-token-to-scrub", typed!.Token.ToString());
+	}
+
+	[TestMethod]
+	public void OfCredentialRejectsANullCredential() =>
+		Assert.ThrowsExactly<ArgumentNullException>(() => NativeSecretBuffer.OfCredential(null!));
+
+	[TestMethod]
+	public void ReadCredentialReturnsNullWhereThereIsNoCredentialToRead()
+	{
+		using NativeSecretBuffer empty = NativeSecretBuffer.CopyOf([0]);
+		using NativeSecretBuffer garbage = NativeSecretBuffer.NulTerminatedCopyOf([.. "{ not a credential"u8]);
+
+		// A store treats null as "nothing stored for this persona", so all three of these have to
+		// answer null rather than throwing: no entry, an empty entry, and an entry that is not
+		// parseable as a credential.
+		Assert.IsNull(NativeSecretBuffer.ReadCredential(IntPtr.Zero));
+		Assert.IsNull(NativeSecretBuffer.ReadCredential(empty.Pointer));
+		Assert.IsNull(NativeSecretBuffer.ReadCredential(garbage.Pointer));
+	}
+
+	[TestMethod]
 	public void ZeroOverwritesTheBuffer()
 	{
 		byte[] blob = SerializedCredential();
