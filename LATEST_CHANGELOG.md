@@ -1,6 +1,6 @@
-## v1.3.54 (patch)
+## v1.3.55 (patch)
 
-Changes since v1.3.53:
+Changes since v1.3.54:
 
-- Bump the ktsu group with 2 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- fix: serialize cache and store mutations per persona [patch] ([@Claude](https://github.com/Claude))
 
