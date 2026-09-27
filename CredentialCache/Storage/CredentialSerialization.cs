@@ -59,6 +59,11 @@ public static class CredentialSerialization
 		{
 			return null;
 		}
+		catch (NotSupportedException)
+		{
+			// Well-formed JSON with no $type discriminator is not a known credential either
+			return null;
+		}
 	}
 
 	/// <summary>
@@ -121,6 +126,11 @@ public static class CredentialSerialization
 		}
 		catch (JsonException)
 		{
+			return null;
+		}
+		catch (NotSupportedException)
+		{
+			// Well-formed JSON with no $type discriminator is not a known credential either
 			return null;
 		}
 	}
