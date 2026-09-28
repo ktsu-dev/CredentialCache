@@ -1,6 +1,9 @@
-## v1.3.57
+## v1.3.58-pre.1 (prerelease)
 
-No significant changes detected since v1.3.57.
+Changes since v1.3.57:
+
+- Bump Polyfill from 11.4.0 to 11.4.1 ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump the ktsu group with 2 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
 
 ## v1.3.57 (patch)
 
@@ -230,8 +233,10 @@ Changes since v1.3.21:
 Changes since v1.3.20:
 
 - Fix ktsu.Sdk 2.27 analyzer errors: Polyfill PrivateAssets, InternalsVisibleTo [patch] ([@matt-edmondson](https://github.com/matt-edmondson))
+- Sync .github\workflows\dotnet.yml ([@KtsuTools](https://github.com/KtsuTools))
 - Sync .editorconfig ([@KtsuTools](https://github.com/KtsuTools))
 - Sync global.json ([@KtsuTools](https://github.com/KtsuTools))
+- Sync .github\workflows\dotnet.yml ([@KtsuTools](https://github.com/KtsuTools))
 
 ## v1.3.20 (patch)
 
@@ -374,8 +379,10 @@ Changes since v1.2.0:
 - Force CRLF working-tree line endings for .cs files ([@Claude](https://github.com/Claude))
 - Rewrite persistence layer to use platform-native credential stores ([@Claude](https://github.com/Claude))
 - Add TAGS.md with NuGet package tags ([@matt-edmondson](https://github.com/matt-edmondson))
+- Sync .github\workflows\dotnet.yml ([@KtsuTools](https://github.com/KtsuTools))
 - Remove legacy build scripts ([@matt-edmondson](https://github.com/matt-edmondson))
 - Refactor project structure and update dependencies; enhance test assertions for clarity ([@matt-edmondson](https://github.com/matt-edmondson))
+- Remove .github\workflows\project.yml ([@matt-edmondson](https://github.com/matt-edmondson))
 - Refactor CredentialCache to use a dedicated data model and enhance persistence management ([@matt-edmondson](https://github.com/matt-edmondson))
 - Update project configuration files, add new workflows, and enhance SDK management ([@matt-edmondson](https://github.com/matt-edmondson))
 - Update .editorconfig, .gitignore, .gitattributes, .mailmap, .runsettings, and PSBuild.psm1 for improved configurations and cleanup ([@matt-edmondson](https://github.com/matt-edmondson))
@@ -476,7 +483,11 @@ Changes since v1.2.2:
 
 ## v1.2.3-pre.1 (prerelease)
 
-No significant changes detected since v1.2.3.
+Changes since v1.2.2:
+
+- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync .editorconfig ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync .runsettings ([@ktsu[bot]](https://github.com/ktsu[bot]))
 
 ## v1.2.2 (patch)
 
@@ -486,7 +497,9 @@ Changes since v1.2.1:
 
 ## v1.2.2-pre.1 (prerelease)
 
-No significant changes detected since v1.2.2.
+Changes since v1.2.1:
+
+- Sync .editorconfig ([@ktsu[bot]](https://github.com/ktsu[bot]))
 
 ## v1.2.1 (patch)
 
@@ -514,7 +527,9 @@ Changes since v1.2.1-pre.1:
 
 ## v1.2.1-pre.1 (prerelease)
 
-No significant changes detected since v1.2.1.
+Changes since v1.2.0:
+
+- Bump the ktsu group with 2 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
 
 ## v1.2.0 (minor)
 
@@ -534,6 +549,130 @@ Changes since v1.0.0:
 
 - Make Create method public in ICredentialFactory<T> ([@matt-edmondson](https://github.com/matt-edmondson))
 - Add mailmap ([@matt-edmondson](https://github.com/matt-edmondson))
+
+## v1.0.0
+
+No significant changes detected since v1.0.0-pre.78.
+
+## v1.0.0-pre.78 (prerelease)
+
+Changes since v1.0.0-pre.77:
+
+- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+
+## v1.0.0-pre.77 (prerelease)
+
+No significant changes detected since v1.0.0-pre.76.
+
+## v1.0.0-pre.76 (prerelease)
+
+No significant changes detected since v1.0.0-pre.75.
+
+## v1.0.0-pre.75 (prerelease)
+
+Changes since v1.0.0-pre.74:
+
+- Bump MSTest from 3.7.2 to 3.7.3 ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+## v1.0.0-pre.74 (prerelease)
+
+No significant changes detected since v1.0.0-pre.73.
+
+## v1.0.0-pre.73 (prerelease)
+
+No significant changes detected since v1.0.0-pre.72.
+
+## v1.0.0-pre.72 (prerelease)
+
+Changes since v1.0.0-pre.71:
+
+- Bump MSTest from 3.7.1 to 3.7.2 ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+## v1.0.0-pre.71 (prerelease)
+
+Changes since v1.0.0-pre.70:
+
+- Bump coverlet.collector from 6.0.3 to 6.0.4 ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+## v1.0.0-pre.70 (prerelease)
+
+No significant changes detected since v1.0.0-pre.69.
+
+## v1.0.0-pre.69 (prerelease)
+
+No significant changes detected since v1.0.0-pre.68.
+
+## v1.0.0-pre.68 (prerelease)
+
+Changes since v1.0.0-pre.67:
+
+- Bump MSTest from 3.7.0 to 3.7.1 ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+## v1.0.0-pre.67 (prerelease)
+
+No significant changes detected since v1.0.0-pre.66.
+
+## v1.0.0-pre.66 (prerelease)
+
+Changes since v1.0.0-pre.65:
+
+- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync scripts\make-version.ps1 ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync scripts\make-changelog.ps1 ([@ktsu[bot]](https://github.com/ktsu[bot]))
+
+## v1.0.0-pre.65 (prerelease)
+
+No significant changes detected since v1.0.0-pre.64.
+
+## v1.0.0-pre.64 (prerelease)
+
+Changes since v1.0.0-pre.63:
+
+- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
+
+## v1.0.0-pre.63 (prerelease)
+
+No significant changes detected since v1.0.0-pre.62.
+
+## v1.0.0-pre.62 (prerelease)
+
+Changes since v1.0.0-pre.61:
+
+- Bump the ktsu group with 3 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Sync scripts\make-version.ps1 ([@ktsu[bot]](https://github.com/ktsu[bot]))
+- Sync .mailmap ([@ktsu[bot]](https://github.com/ktsu[bot]))
+
+## v1.0.0-pre.61 (prerelease)
+
+Changes since v1.0.0-pre.60:
+
+- Add mailmap ([@matt-edmondson](https://github.com/matt-edmondson))
+- Add automation scripts for metadata and version management ([@matt-edmondson](https://github.com/matt-edmondson))
+
+## v1.0.0-pre.60 (prerelease)
+
+Changes since v1.0.0-pre.59:
+
+- Bump the ktsu group with 3 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump coverlet.collector from 6.0.2 to 6.0.3 ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump ktsu.StrongStrings from 1.2.25 to 1.2.26 in the ktsu group ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+## v1.0.0-pre.59 (prerelease)
+
+Changes since v1.0.0-alpha.58:
+
+- Normalize paths and add JsonSerializer property ([@matt-edmondson](https://github.com/matt-edmondson))
+- Update Directory.Build files with path normalization ([@matt-edmondson](https://github.com/matt-edmondson))
+- Enhance CredentialCacheTests with new test methods ([@matt-edmondson](https://github.com/matt-edmondson))
+- Refactor PersonaGUID and CredentialCache classes ([@matt-edmondson](https://github.com/matt-edmondson))
+- Update project rules and add explicit analyzer rules ([@matt-edmondson](https://github.com/matt-edmondson))
+- Reorganize and reformat copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
+- Update build files with new properties and path normalization ([@matt-edmondson](https://github.com/matt-edmondson))
+- Add CredentialCache test project and initial test cases ([@matt-edmondson](https://github.com/matt-edmondson))
+- Enhance credential management and add documentation ([@matt-edmondson](https://github.com/matt-edmondson))
+- Add Additional Best Practices to copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
+- Add comprehensive project guidelines in copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
+- Renamed metadata files ([@matt-edmondson](https://github.com/matt-edmondson))
 
 ## v1.0.0-alpha.58 (prerelease)
 
@@ -888,175 +1027,6 @@ Changes since v1.0.0-alpha.1:
 
 ## v1.0.0-alpha.1 (prerelease)
 
-No significant changes detected since v1.0.0.
-
-## v1.0.0
-
-No significant changes detected since v1.0.0-pre.78.
-
-## v1.0.0-pre.78 (prerelease)
-
-Changes since v1.0.0-pre.77:
-
-- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
-
-## v1.0.0-pre.77 (prerelease)
-
-No significant changes detected since v1.0.0-pre.76.
-
-## v1.0.0-pre.76 (prerelease)
-
-No significant changes detected since v1.0.0-pre.75.
-
-## v1.0.0-pre.75 (prerelease)
-
-Changes since v1.0.0-pre.74:
-
-- Bump MSTest from 3.7.2 to 3.7.3 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-
-## v1.0.0-pre.74 (prerelease)
-
-No significant changes detected since v1.0.0-pre.73.
-
-## v1.0.0-pre.73 (prerelease)
-
-No significant changes detected since v1.0.0-pre.72.
-
-## v1.0.0-pre.72 (prerelease)
-
-Changes since v1.0.0-pre.71:
-
-- Bump MSTest from 3.7.1 to 3.7.2 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-
-## v1.0.0-pre.71 (prerelease)
-
-Changes since v1.0.0-pre.70:
-
-- Bump coverlet.collector from 6.0.3 to 6.0.4 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-
-## v1.0.0-pre.70 (prerelease)
-
-No significant changes detected since v1.0.0-pre.69.
-
-## v1.0.0-pre.69 (prerelease)
-
-No significant changes detected since v1.0.0-pre.68.
-
-## v1.0.0-pre.68 (prerelease)
-
-Changes since v1.0.0-pre.67:
-
-- Bump MSTest from 3.7.0 to 3.7.1 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-
-## v1.0.0-pre.67 (prerelease)
-
-No significant changes detected since v1.0.0-pre.66.
-
-## v1.0.0-pre.66 (prerelease)
-
-Changes since v1.0.0-pre.65:
-
-- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync scripts\make-version.ps1 ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync scripts\make-changelog.ps1 ([@ktsu[bot]](https://github.com/ktsu[bot]))
-
-## v1.0.0-pre.65 (prerelease)
-
-No significant changes detected since v1.0.0-pre.64.
-
-## v1.0.0-pre.64 (prerelease)
-
-Changes since v1.0.0-pre.63:
-
-- Sync .github\workflows\dotnet.yml ([@ktsu[bot]](https://github.com/ktsu[bot]))
-
-## v1.0.0-pre.63 (prerelease)
-
-No significant changes detected since v1.0.0-pre.62.
-
-## v1.0.0-pre.62 (prerelease)
-
-Changes since v1.0.0-pre.61:
-
-- Bump the ktsu group with 3 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Sync scripts\make-version.ps1 ([@ktsu[bot]](https://github.com/ktsu[bot]))
-- Sync .mailmap ([@ktsu[bot]](https://github.com/ktsu[bot]))
-
-## v1.0.0-pre.61 (prerelease)
-
-Changes since v1.0.0-pre.60:
-
-- Add mailmap ([@matt-edmondson](https://github.com/matt-edmondson))
-- Add automation scripts for metadata and version management ([@matt-edmondson](https://github.com/matt-edmondson))
-
-## v1.0.0-pre.60 (prerelease)
-
-Changes since v1.0.0-pre.59:
-
-- Bump the ktsu group with 3 updates ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Bump coverlet.collector from 6.0.2 to 6.0.3 ([@dependabot[bot]](https://github.com/dependabot[bot]))
-- Bump ktsu.StrongStrings from 1.2.25 to 1.2.26 in the ktsu group ([@dependabot[bot]](https://github.com/dependabot[bot]))
-
-## v1.0.0-pre.59 (prerelease)
-
-- Normalize paths and add JsonSerializer property ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update Directory.Build files with path normalization ([@matt-edmondson](https://github.com/matt-edmondson))
-- Enhance CredentialCacheTests with new test methods ([@matt-edmondson](https://github.com/matt-edmondson))
-- Refactor PersonaGUID and CredentialCache classes ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update project rules and add explicit analyzer rules ([@matt-edmondson](https://github.com/matt-edmondson))
-- Reorganize and reformat copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update build files with new properties and path normalization ([@matt-edmondson](https://github.com/matt-edmondson))
-- Add CredentialCache test project and initial test cases ([@matt-edmondson](https://github.com/matt-edmondson))
-- Enhance credential management and add documentation ([@matt-edmondson](https://github.com/matt-edmondson))
-- Add Additional Best Practices to copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
-- Add comprehensive project guidelines in copilot-instructions.md ([@matt-edmondson](https://github.com/matt-edmondson))
-- Renamed metadata files ([@matt-edmondson](https://github.com/matt-edmondson))
-- Replace LICENSE file with LICENSE.md and update copyright information ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.40 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.39 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.38 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.37 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.36 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.35 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.34 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.33 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.32 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.31 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.30 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.29 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update ktsu.AppDataStorage and ktsu.StrongPaths package references to latest versions ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.28 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update ktsu.StrongPaths package reference to version 1.1.30 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.27 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update package references to latest versions ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.26 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.25 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.24 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.23 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.22 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.21 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.20 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.19 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.18 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.17 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.16 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.15 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.14 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.13 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.12 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.11 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.10 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.9 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.8 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.7 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.6 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.5 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Renames to remove references to git ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.4 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Add a way to register credential factories ([@matt-edmondson](https://github.com/matt-edmondson))
-- Add credential factories ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION to 1.0.0-alpha.3 ([@matt-edmondson](https://github.com/matt-edmondson))
-- Update VERSION ([@matt-edmondson](https://github.com/matt-edmondson))
 - Update VERSION to 1.0.0-alpha.1 ([@matt-edmondson](https://github.com/matt-edmondson))
 - Update VERSION ([@matt-edmondson](https://github.com/matt-edmondson))
 - Initial commit ([@matt-edmondson](https://github.com/matt-edmondson))
