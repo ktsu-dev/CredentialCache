@@ -1,7 +1,6 @@
-## v1.3.58 (patch)
+## v1.3.59 (patch)
 
-Changes since v1.3.57:
+Changes since v1.3.58:
 
-- Cover ThrowIfError with a GError built by glib ([@Claude](https://github.com/Claude))
-- Read GError.message at its real offset on 64-bit Linux [patch] ([@Claude](https://github.com/Claude))
+- Move CI onto the shared ci-shared.yml pipeline ([@Claude](https://github.com/Claude))
 
