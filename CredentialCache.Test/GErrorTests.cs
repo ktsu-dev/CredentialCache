@@ -3,6 +3,7 @@
 namespace ktsu.CredentialCache.Test;
 
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using ktsu.CredentialCache.Storage;
 
 /// <summary>
@@ -57,4 +58,34 @@ public class GErrorTests
 			Marshal.FreeHGlobal(error);
 		}
 	}
+
+	[TestMethod]
+	public void ThrowIfErrorReportsTheMessageOfARealGError()
+	{
+		if (!OperatingSystem.IsLinux())
+		{
+			Assert.Inconclusive("GError comes from glib, which is only loaded on Linux.");
+			return;
+		}
+
+		AssertThrowIfErrorReportsTheMessage();
+	}
+
+	// Built by glib itself rather than by hand, so this checks the real layout. glib frees
+	// the error inside ThrowIfError.
+	[SupportedOSPlatform("linux")]
+	private static void AssertThrowIfErrorReportsTheMessage()
+	{
+		IntPtr glib = NativeLibrary.Load("libglib-2.0.so.0");
+		GErrorNewLiteral newLiteral = Marshal.GetDelegateForFunctionPointer<GErrorNewLiteral>(
+			NativeLibrary.GetExport(glib, "g_error_new_literal"));
+		IntPtr error = newLiteral(1, 2, "Cannot autolaunch D-Bus without X11 $DISPLAY");
+
+		CredentialStoreException exception = Assert.ThrowsExactly<CredentialStoreException>(
+			() => LinuxSecretServiceCredentialStore.ThrowIfError(error, "secret_password_lookup_sync"));
+
+		Assert.AreEqual("secret_password_lookup_sync failed: Cannot autolaunch D-Bus without X11 $DISPLAY", exception.Message);
+	}
+
+	private delegate IntPtr GErrorNewLiteral(uint domain, int code, [MarshalAs(UnmanagedType.LPUTF8Str)] string message);
 }

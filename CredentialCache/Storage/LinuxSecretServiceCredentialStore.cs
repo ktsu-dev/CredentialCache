@@ -130,7 +130,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		return removed;
 	}
 
-	private static void ThrowIfError(IntPtr error, string operation)
+	internal static void ThrowIfError(IntPtr error, string operation)
 	{
 		if (error == IntPtr.Zero)
 		{
