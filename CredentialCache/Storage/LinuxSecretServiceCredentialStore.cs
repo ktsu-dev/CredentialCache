@@ -139,8 +139,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		string? message = null;
 		try
 		{
-			IntPtr messagePtr = Marshal.ReadIntPtr(error, IntPtr.Size * 2);
-			message = Marshal.PtrToStringUTF8(messagePtr);
+			message = GError.ReadMessage(error);
 		}
 		catch
 		{
