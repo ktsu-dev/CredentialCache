@@ -130,7 +130,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		return removed;
 	}
 
-	private static void ThrowIfError(IntPtr error, string operation)
+	internal static void ThrowIfError(IntPtr error, string operation)
 	{
 		if (error == IntPtr.Zero)
 		{
@@ -139,8 +139,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		string? message = null;
 		try
 		{
-			IntPtr messagePtr = Marshal.ReadIntPtr(error, IntPtr.Size * 2);
-			message = Marshal.PtrToStringUTF8(messagePtr);
+			message = GError.ReadMessage(error);
 		}
 		catch
 		{
