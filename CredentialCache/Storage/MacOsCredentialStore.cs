@@ -78,11 +78,11 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 
 		try
 		{
-			int findStatus = NativeMethods.SecKeychainFindGenericPasswordWithRef(
+			int findStatus = NativeMethods.SecKeychainFindGenericPasswordItem(
 				keychainOrArray: IntPtr.Zero,
 				serviceNameLength: (uint)service.Length, serviceName: service,
 				accountNameLength: (uint)account.Length, accountName: account,
-				passwordLength: out _, passwordData: out IntPtr existingPtr,
+				passwordLength: IntPtr.Zero, passwordData: IntPtr.Zero,
 				itemRef: out IntPtr itemRef);
 
 			if (findStatus == NativeMethods.errSecSuccess)
@@ -100,10 +100,6 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 				}
 				finally
 				{
-					if (existingPtr != IntPtr.Zero)
-					{
-						_ = NativeMethods.SecKeychainItemFreeContent(IntPtr.Zero, existingPtr);
-					}
 					if (itemRef != IntPtr.Zero)
 					{
 						NativeMethods.CFRelease(itemRef);
@@ -142,11 +138,11 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 		byte[] account = Encoding.UTF8.GetBytes(persona.ToString());
 		byte[] service = Encoding.UTF8.GetBytes(_serviceName);
 
-		int findStatus = NativeMethods.SecKeychainFindGenericPasswordWithRef(
+		int findStatus = NativeMethods.SecKeychainFindGenericPasswordItem(
 			keychainOrArray: IntPtr.Zero,
 			serviceNameLength: (uint)service.Length, serviceName: service,
 			accountNameLength: (uint)account.Length, accountName: account,
-			passwordLength: out _, passwordData: out IntPtr passwordPtr,
+			passwordLength: IntPtr.Zero, passwordData: IntPtr.Zero,
 			itemRef: out IntPtr itemRef);
 
 		if (findStatus == NativeMethods.errSecItemNotFound)
@@ -169,10 +165,6 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 		}
 		finally
 		{
-			if (passwordPtr != IntPtr.Zero)
-			{
-				_ = NativeMethods.SecKeychainItemFreeContent(IntPtr.Zero, passwordPtr);
-			}
 			if (itemRef != IntPtr.Zero)
 			{
 				NativeMethods.CFRelease(itemRef);
@@ -196,12 +188,18 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 			out uint passwordLength, out IntPtr passwordData,
 			IntPtr itemRef);
 
+		/// <summary>
+		/// Finds an item for its reference alone. Pass <see cref="IntPtr.Zero"/> for both password
+		/// parameters: asking for the password data makes the Keychain decrypt the secret into this
+		/// process, where <see cref="SecKeychainItemFreeContent"/> releases it without zeroing it,
+		/// and can raise an access prompt that modifying or deleting through the reference does not.
+		/// </summary>
 		[DllImport(Security, EntryPoint = "SecKeychainFindGenericPassword")]
-		internal static extern int SecKeychainFindGenericPasswordWithRef(
+		internal static extern int SecKeychainFindGenericPasswordItem(
 			IntPtr keychainOrArray,
 			uint serviceNameLength, byte[] serviceName,
 			uint accountNameLength, byte[] accountName,
-			out uint passwordLength, out IntPtr passwordData,
+			IntPtr passwordLength, IntPtr passwordData,
 			out IntPtr itemRef);
 
 		[DllImport(Security)]
