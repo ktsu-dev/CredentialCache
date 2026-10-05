@@ -72,39 +72,28 @@ internal sealed class WindowsCredentialStore : ISearchableCredentialStore
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
 
-		byte[] blob = CredentialSerialization.Serialize(credential);
-		if (blob.Length > NativeMethods.CRED_MAX_CREDENTIAL_BLOB_SIZE)
-		{
-			throw new CredentialStoreException(
-				$"Credential exceeds the Windows Credential Manager blob size limit of " +
-				$"{NativeMethods.CRED_MAX_CREDENTIAL_BLOB_SIZE} bytes (was {blob.Length}).");
-		}
+		// CopyWithinLimit zeroes the serialized bytes on every path, the over-limit rejection
+		// included. The unmanaged copy handed to CredWriteW is plaintext too; NativeSecretBuffer
+		// zeroes it before freeing it, which Marshal.FreeHGlobal alone does not.
+		using NativeSecretBuffer nativeBlob = NativeSecretBuffer.CopyWithinLimit(
+			CredentialSerialization.Serialize(credential),
+			NativeMethods.CRED_MAX_CREDENTIAL_BLOB_SIZE,
+			Name);
 
-		try
+		NativeMethods.CREDENTIAL native = new()
 		{
-			// The unmanaged copy handed to CredWriteW is plaintext; NativeSecretBuffer
-			// zeroes it before freeing it, which Marshal.FreeHGlobal alone does not.
-			using NativeSecretBuffer nativeBlob = NativeSecretBuffer.CopyOf(blob);
+			Type = NativeMethods.CRED_TYPE_GENERIC,
+			TargetName = TargetFor(persona),
+			CredentialBlob = nativeBlob.Pointer,
+			CredentialBlobSize = nativeBlob.Length,
+			Persist = NativeMethods.CRED_PERSIST_LOCAL_MACHINE,
+			UserName = Environment.UserName,
+		};
 
-			NativeMethods.CREDENTIAL native = new()
-			{
-				Type = NativeMethods.CRED_TYPE_GENERIC,
-				TargetName = TargetFor(persona),
-				CredentialBlob = nativeBlob.Pointer,
-				CredentialBlobSize = nativeBlob.Length,
-				Persist = NativeMethods.CRED_PERSIST_LOCAL_MACHINE,
-				UserName = Environment.UserName,
-			};
-
-			if (!NativeMethods.CredWrite(ref native, 0))
-			{
-				int err = Marshal.GetLastWin32Error();
-				throw new CredentialStoreException($"CredWrite failed for '{persona}'.", new Win32Exception(err));
-			}
-		}
-		finally
+		if (!NativeMethods.CredWrite(ref native, 0))
 		{
-			CredentialSerialization.Zero(blob);
+			int err = Marshal.GetLastWin32Error();
+			throw new CredentialStoreException($"CredWrite failed for '{persona}'.", new Win32Exception(err));
 		}
 	}
 

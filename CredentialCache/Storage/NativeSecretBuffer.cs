@@ -61,6 +61,41 @@ internal sealed class NativeSecretBuffer : IDisposable
 	}
 
 	/// <summary>
+	/// Copies <paramref name="source"/> into newly allocated unmanaged memory, provided it fits
+	/// within <paramref name="maxLength"/>, and zeroes <paramref name="source"/> before returning.
+	/// </summary>
+	/// <param name="source">The plaintext bytes to copy. Always zeroed, whether or not this throws.</param>
+	/// <param name="maxLength">The largest blob the native store accepts, in bytes.</param>
+	/// <param name="storeName">The store's name, for the message of an over-limit exception.</param>
+	/// <returns>A buffer owning the unmanaged copy, which the caller must dispose.</returns>
+	/// <exception cref="CredentialStoreException"><paramref name="source"/> is longer than <paramref name="maxLength"/>.</exception>
+	/// <remarks>
+	/// A store that checks the limit itself is tempted to do it before its own <c>try</c>, which
+	/// leaves the plaintext on the managed heap unscrubbed whenever the check throws. Taking the
+	/// managed copy over here keeps the rejection path inside the scrubbing, and keeps it
+	/// exercised by tests on every operating system rather than only the store's own.
+	/// </remarks>
+	internal static NativeSecretBuffer CopyWithinLimit(byte[] source, int maxLength, string storeName)
+	{
+		ArgumentNullException.ThrowIfNull(source);
+
+		try
+		{
+			if (source.Length > maxLength)
+			{
+				throw new CredentialStoreException(
+					$"Credential exceeds the {storeName} blob size limit of {maxLength} bytes (was {source.Length}).");
+			}
+
+			return CopyOf(source);
+		}
+		finally
+		{
+			CredentialSerialization.Zero(source);
+		}
+	}
+
+	/// <summary>
 	/// Copies <paramref name="source"/> into newly allocated unmanaged memory followed by a
 	/// single nul byte, for a native API that takes a C string rather than a pointer and a
 	/// length.
