@@ -155,29 +155,46 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		throw new CredentialStoreException($"{operation} failed: {message ?? "<no detail>"}");
 	}
 
-	private static readonly Lock SchemaLock = new();
-	private static IntPtr schemaHandle;
+	private static readonly NativeHandleCache Schema = new();
 
 	/// <summary>
 	/// Builds the schema on first use rather than in a type initializer: a load failure
 	/// there would reach callers as a <see cref="TypeInitializationException"/> on every
 	/// call, which nobody would think to catch.
 	/// </summary>
-	private static IntPtr GetSchemaHandle()
-	{
-		lock (SchemaLock)
-		{
-			if (schemaHandle == IntPtr.Zero)
-			{
-				schemaHandle = TranslateMissingLibrary(() => NativeMethods.secret_schema_new(
-					"dev.ktsu.CredentialCache",
-					flags: 0,
-					"service", 0,
-					"account", 0,
-					IntPtr.Zero));
-			}
+	private static IntPtr GetSchemaHandle() =>
+		Schema.GetOrCreate(() => TranslateMissingLibrary(() => NativeMethods.secret_schema_new(
+			"dev.ktsu.CredentialCache",
+			flags: 0,
+			"service", 0,
+			"account", 0,
+			IntPtr.Zero)));
 
-			return schemaHandle;
+	/// <summary>
+	/// Holds a native handle created on first use. A failed creation is not cached, so every
+	/// later call fails the same way as the first instead of rethrowing a stale exception.
+	/// </summary>
+	internal sealed class NativeHandleCache
+	{
+		private readonly Lock _lock = new();
+		private IntPtr _handle;
+
+		/// <summary>
+		/// Returns the cached handle, creating it with <paramref name="create"/> if there is none.
+		/// </summary>
+		/// <param name="create">Creates the handle.</param>
+		/// <returns>The handle.</returns>
+		internal IntPtr GetOrCreate(Func<IntPtr> create)
+		{
+			lock (_lock)
+			{
+				if (_handle == IntPtr.Zero)
+				{
+					_handle = create();
+				}
+
+				return _handle;
+			}
 		}
 	}
 

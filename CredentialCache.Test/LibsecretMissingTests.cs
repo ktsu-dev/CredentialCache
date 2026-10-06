@@ -51,6 +51,18 @@ public class LibsecretMissingTests
 	}
 
 	[TestMethod]
+	public void SchemaCacheCreatesTheHandleOnceAndRetriesAfterAFailure()
+	{
+		if (!OperatingSystem.IsLinux())
+		{
+			Assert.Inconclusive("The libsecret store is only built on Linux.");
+			return;
+		}
+
+		AssertSchemaCacheBehaviour();
+	}
+
+	[TestMethod]
 	public void EveryOperationThrowsCredentialStoreExceptionWhenLibsecretIsMissing()
 	{
 		if (!OperatingSystem.IsLinux())
@@ -85,6 +97,35 @@ public class LibsecretMissingTests
 		Assert.AreEqual(42, LinuxSecretServiceCredentialStore.TranslateMissingLibrary(() => 42));
 		Assert.ThrowsExactly<InvalidOperationException>(
 			() => LinuxSecretServiceCredentialStore.TranslateMissingLibrary<int>(() => throw new InvalidOperationException()));
+	}
+
+	[SupportedOSPlatform("linux")]
+	private static void AssertSchemaCacheBehaviour()
+	{
+		LinuxSecretServiceCredentialStore.NativeHandleCache cache = new();
+		int calls = 0;
+
+		// A failure is not cached: the next call tries again rather than rethrowing.
+		Assert.ThrowsExactly<CredentialStoreException>(() => cache.GetOrCreate(() =>
+		{
+			calls++;
+			throw new CredentialStoreException("libsecret-1.so.0 could not be loaded.");
+		}));
+
+		IntPtr created = cache.GetOrCreate(() =>
+		{
+			calls++;
+			return new IntPtr(42);
+		});
+		IntPtr cached = cache.GetOrCreate(() =>
+		{
+			calls++;
+			return new IntPtr(7);
+		});
+
+		Assert.AreEqual(new IntPtr(42), created);
+		Assert.AreEqual(created, cached);
+		Assert.AreEqual(2, calls);
 	}
 
 	[SupportedOSPlatform("linux")]
