@@ -15,8 +15,10 @@ using System.Runtime.Versioning;
 /// <para>
 /// Requires libsecret to be installed on the host. On headless systems without
 /// a running secret-service implementation (e.g. minimal containers, build agents)
-/// this provider will fail at the first operation; consumers should detect this
-/// and fall back to <see cref="InMemoryCredentialStore"/> if appropriate.
+/// this provider throws <see cref="CredentialStoreException"/> from every operation;
+/// consumers should catch it and fall back to <see cref="InMemoryCredentialStore"/> if
+/// appropriate. A missing <c>libsecret-1.so.0</c> surfaces the same way, with the
+/// <see cref="DllNotFoundException"/> as its inner exception.
 /// </para>
 /// <para>
 /// Plaintext credential bytes are scrubbed on the same terms as the Windows and macOS
@@ -50,7 +52,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 
 		IntPtr error = IntPtr.Zero;
 		IntPtr passwordPtr = NativeMethods.secret_password_lookup_sync(
-			Schema.Handle,
+			GetSchemaHandle(),
 			IntPtr.Zero,
 			ref error,
 			"service", _serviceName,
@@ -94,7 +96,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 
 		IntPtr error = IntPtr.Zero;
 		bool stored = NativeMethods.secret_password_store_sync(
-			Schema.Handle,
+			GetSchemaHandle(),
 			IntPtr.Zero,
 			label,
 			value.Pointer,
@@ -119,7 +121,7 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 
 		IntPtr error = IntPtr.Zero;
 		bool removed = NativeMethods.secret_password_clear_sync(
-			Schema.Handle,
+			GetSchemaHandle(),
 			IntPtr.Zero,
 			ref error,
 			"service", _serviceName,
@@ -153,14 +155,65 @@ internal sealed class LinuxSecretServiceCredentialStore : ICredentialStore
 		throw new CredentialStoreException($"{operation} failed: {message ?? "<no detail>"}");
 	}
 
-	private static class Schema
-	{
-		internal static readonly IntPtr Handle = NativeMethods.secret_schema_new(
+	private static readonly NativeHandleCache Schema = new();
+
+	/// <summary>
+	/// Builds the schema on first use rather than in a type initializer: a load failure
+	/// there would reach callers as a <see cref="TypeInitializationException"/> on every
+	/// call, which nobody would think to catch.
+	/// </summary>
+	private static IntPtr GetSchemaHandle() =>
+		Schema.GetOrCreate(() => TranslateMissingLibrary(() => NativeMethods.secret_schema_new(
 			"dev.ktsu.CredentialCache",
 			flags: 0,
 			"service", 0,
 			"account", 0,
-			IntPtr.Zero);
+			IntPtr.Zero)));
+
+	/// <summary>
+	/// Holds a native handle created on first use. A failed creation is not cached, so every
+	/// later call fails the same way as the first instead of rethrowing a stale exception.
+	/// </summary>
+	internal sealed class NativeHandleCache
+	{
+		private readonly Lock _lock = new();
+		private IntPtr _handle;
+
+		/// <summary>
+		/// Returns the cached handle, creating it with <paramref name="create"/> if there is none.
+		/// </summary>
+		/// <param name="create">Creates the handle.</param>
+		/// <returns>The handle.</returns>
+		internal IntPtr GetOrCreate(Func<IntPtr> create)
+		{
+			lock (_lock)
+			{
+				if (_handle == IntPtr.Zero)
+				{
+					_handle = create();
+				}
+
+				return _handle;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Runs a native call, turning a missing or incompatible libsecret into the store's
+	/// documented <see cref="CredentialStoreException"/>.
+	/// </summary>
+	internal static T TranslateMissingLibrary<T>(Func<T> nativeCall)
+	{
+		try
+		{
+			return nativeCall();
+		}
+		catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+		{
+			throw new CredentialStoreException(
+				$"libsecret-1.so.0 could not be loaded. Install libsecret-1-0 and a Secret Service implementation, or use {nameof(InMemoryCredentialStore)}.",
+				ex);
+		}
 	}
 
 	private static class NativeMethods
