@@ -1,6 +1,6 @@
-## v1.3.60-pre.3 (prerelease)
+## v1.3.60 (patch)
 
-Changes since v1.3.60-pre.2:
+Changes since v1.3.59:
 
-- Bump Polyfill from 11.4.1 to 11.4.3 ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Zero an over-limit credential blob in the Windows store [patch] ([@matt-edmondson](https://github.com/matt-edmondson))
 
