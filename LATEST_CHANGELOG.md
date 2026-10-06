@@ -1,6 +1,7 @@
-## v1.3.60 (patch)
+## v1.3.61 (patch)
 
-Changes since v1.3.59:
+Changes since v1.3.60:
 
-- Zero an over-limit credential blob in the Windows store [patch] ([@matt-edmondson](https://github.com/matt-edmondson))
+- Move schema caching into a testable NativeHandleCache ([@Claude](https://github.com/Claude))
+- Throw CredentialStoreException, not TypeInitializationException, when libsecret is missing [patch] ([@Claude](https://github.com/Claude))
 
