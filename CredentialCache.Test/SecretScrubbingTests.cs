@@ -159,6 +159,37 @@ public class SecretScrubbingTests
 		Assert.ThrowsExactly<ArgumentNullException>(() => NativeSecretBuffer.CopyOf(null!));
 
 	[TestMethod]
+	public void CopyWithinLimitCopiesASourceAtTheLimitAndZeroesTheManagedCopy()
+	{
+		byte[] blob = SerializedCredential();
+		byte[] expected = (byte[])blob.Clone();
+
+		using NativeSecretBuffer buffer = NativeSecretBuffer.CopyWithinLimit(blob, blob.Length, "Test store");
+
+		Assert.AreSequenceEqual(expected, ReadUnmanaged(buffer));
+		Assert.AreSequenceEqual(new byte[blob.Length], blob,
+			"The managed plaintext must be zeroed once it has been copied out.");
+	}
+
+	[TestMethod]
+	public void CopyWithinLimitRejectsAnOversizeSourceAndStillZeroesIt()
+	{
+		byte[] blob = SerializedCredential();
+
+		CredentialStoreException ex = Assert.ThrowsExactly<CredentialStoreException>(
+			() => NativeSecretBuffer.CopyWithinLimit(blob, blob.Length - 1, "Test store"));
+
+		StringAssert.Contains(ex.Message, "Test store");
+		StringAssert.Contains(ex.Message, $"(was {blob.Length})");
+		Assert.AreSequenceEqual(new byte[blob.Length], blob,
+			"An over-limit credential must be scrubbed on the rejection path too.");
+	}
+
+	[TestMethod]
+	public void CopyWithinLimitRejectsANullSource() =>
+		Assert.ThrowsExactly<ArgumentNullException>(() => NativeSecretBuffer.CopyWithinLimit(null!, 1, "Test store"));
+
+	[TestMethod]
 	public void NulTerminatedCopyOfAppendsTheTerminator()
 	{
 		byte[] blob = SerializedCredential();

@@ -36,6 +36,7 @@ public class NativeStoreScrubbingWiringTests
 
 	private static readonly MethodInfo ReadCredential = Buffer(nameof(NativeSecretBuffer.ReadCredential));
 	private static readonly MethodInfo OfCredential = Buffer(nameof(NativeSecretBuffer.OfCredential));
+	private static readonly MethodInfo CopyWithinLimit = Buffer(nameof(NativeSecretBuffer.CopyWithinLimit));
 
 	private static MethodInfo Helper(string name) =>
 		typeof(CredentialSerialization).GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
@@ -132,6 +133,19 @@ public class NativeStoreScrubbingWiringTests
 				+ "heap unscrubbable, and marshalling it would add a native copy freed without scrubbing.");
 		}
 	}
+
+	/// <summary>
+	/// The Windows store is the one with a blob size limit. Checking it in the store body put
+	/// the throw ahead of the store's own <c>try</c>, so an over-limit credential was rejected
+	/// without its serialized plaintext ever being zeroed (#165). The shared helper owns the
+	/// check inside its scrubbing, where <see cref="SecretScrubbingTests"/> exercises it.
+	/// </summary>
+	[TestMethod]
+	public void TheWindowsStoreChecksItsBlobLimitInsideTheScrubbing() =>
+		Assert.IsTrue(
+			Calls(Method(typeof(WindowsCredentialStore), nameof(ICredentialStore.Save)), CopyWithinLimit),
+			"WindowsCredentialStore.Save must copy its blob through NativeSecretBuffer.CopyWithinLimit, "
+			+ "which zeroes the serialized plaintext on the over-limit rejection path as well.");
 
 	/// <summary>
 	/// macOS <c>Save</c> and <c>Remove</c> look an item up only for its reference, to modify or
