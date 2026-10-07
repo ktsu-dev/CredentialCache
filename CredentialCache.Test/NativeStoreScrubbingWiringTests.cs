@@ -148,6 +148,54 @@ public class NativeStoreScrubbingWiringTests
 			+ "which zeroes the serialized plaintext on the over-limit rejection path as well.");
 
 	/// <summary>
+	/// macOS <c>Save</c> and <c>Remove</c> look an item up only for its reference, to modify or
+	/// delete through. Asking <c>SecKeychainFindGenericPassword</c> for the password data as well
+	/// made the Keychain decrypt the old secret into this process, where
+	/// <c>SecKeychainItemFreeContent</c> released it unscrubbed (#166). The lookup they use must
+	/// have no way to receive the secret, and so nothing for them to free.
+	/// </summary>
+	[TestMethod]
+	public void TheMacOsStoreDecryptsASecretOnlyToLoadIt()
+	{
+		Type nativeMethods = typeof(MacOsCredentialStore).GetNestedType("NativeMethods", BindingFlags.NonPublic)
+			?? throw new InvalidOperationException("MacOsCredentialStore.NativeMethods not found.");
+		MethodInfo[] lookups = [.. nativeMethods
+			.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
+			.Where(m => m.GetCustomAttribute<System.Runtime.InteropServices.DllImportAttribute>()?.EntryPoint
+				== "SecKeychainFindGenericPassword")];
+		MethodInfo freeContent = nativeMethods.GetMethod("SecKeychainItemFreeContent", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
+			?? throw new InvalidOperationException("SecKeychainItemFreeContent not found.");
+
+		MethodInfo tryLoad = Method(typeof(MacOsCredentialStore), nameof(ICredentialStore.TryLoad));
+		Assert.IsTrue(
+			Calls(tryLoad, freeContent),
+			"TryLoad is the one path that needs the secret, and must still release what the Keychain returned.");
+
+		foreach (string name in new[] { nameof(ICredentialStore.Save), nameof(ICredentialStore.Remove) })
+		{
+			MethodInfo method = Method(typeof(MacOsCredentialStore), name);
+			MethodInfo[] used = [.. lookups.Where(l => Calls(method, l))];
+
+			Assert.IsNotEmpty(used, $"MacOsCredentialStore.{name} must look the item up to modify or delete it.");
+			foreach (MethodInfo lookup in used)
+			{
+				foreach (string parameter in new[] { "passwordLength", "passwordData" })
+				{
+					Assert.IsFalse(
+						lookup.GetParameters().Single(p => p.Name == parameter).ParameterType.IsByRef,
+						$"MacOsCredentialStore.{name} looks the item up through {lookup.Name}, whose {parameter} is an "
+						+ "out parameter; it must be a plain pointer so it can be passed as null and the Keychain "
+						+ "never decrypts the secret.");
+				}
+			}
+
+			Assert.IsFalse(
+				Calls(method, freeContent),
+				$"MacOsCredentialStore.{name} must never receive password data, so it has nothing to free.");
+		}
+	}
+
+	/// <summary>
 	/// The second hop of the two assertions above. Accepting the wrapper as equivalent to a
 	/// direct call is only sound while the wrapper itself uses the scrubbing helper, so that is
 	/// asserted rather than assumed.
