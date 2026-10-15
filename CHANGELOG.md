@@ -625,7 +625,7 @@ Changes since v1.1.0:
 
 Changes since v1.0.0:
 
-- Make Create method public in ICredentialFactory<T> (matt-edmondson)
+- Make Create method public in ICredentialFactory\<T\> (matt-edmondson)
 - Add mailmap (matt-edmondson)
 
 ## v1.0.0
