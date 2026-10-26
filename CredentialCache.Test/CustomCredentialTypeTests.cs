@@ -74,7 +74,7 @@ public class CustomCredentialTypeTests
 		CredentialStoreException exception = Assert.ThrowsExactly<CredentialStoreException>(
 			() => cache.AddOrReplace(persona, new NeverRegisteredCredential { Value = "x" }));
 
-		StringAssert.Contains(exception.Message, nameof(NeverRegisteredCredential));
+		Assert.Contains(nameof(NeverRegisteredCredential), exception.Message);
 		Assert.IsTrue(cache.TryGet(persona, out Credential? cached));
 		Assert.AreSame(original, cached);
 		Assert.IsTrue(store.TryLoad(persona, out Credential? stored));

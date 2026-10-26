@@ -96,12 +96,12 @@ public static class CredentialSerialization
 		Type type = typeof(T);
 		if (type.IsAbstract)
 		{
-			throw new ArgumentException($"{type} is abstract, so no stored credential can be one.", nameof(T));
+			throw new ArgumentException($"{type} is abstract, so no stored credential can be one.");
 		}
 
 		if (BuiltInTypes.ContainsKey(type))
 		{
-			throw new ArgumentException($"{type} is one of the library's own credential types and is already known.", nameof(T));
+			throw new ArgumentException($"{type} is one of the library's own credential types and is already known.");
 		}
 
 		lock (RegistrationLock)
@@ -113,7 +113,7 @@ public static class CredentialSerialization
 					return;
 				}
 
-				throw new ArgumentException($"{type} is already registered with the discriminator \"{existing}\".", nameof(T));
+				throw new ArgumentException($"{type} is already registered with the discriminator \"{existing}\".");
 			}
 
 			Type? owner = BuiltInTypes.Concat(registeredTypes)
