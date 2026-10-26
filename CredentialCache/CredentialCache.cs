@@ -192,11 +192,20 @@ public sealed class CredentialCache : IDisposable
 	/// lock, so a concurrent <see cref="Remove"/> of the same persona cannot land
 	/// between them.
 	/// </remarks>
+	/// <exception cref="CredentialStoreException">
+	/// <paramref name="credential"/> is a type defined outside this library that was never
+	/// registered with <see cref="CredentialSerialization.RegisterDerivedType{T}(string)"/>. The
+	/// cache and the store are left unchanged.
+	/// </exception>
 	public void AddOrReplace(PersonaGUID persona, Credential credential)
 	{
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
 		ThrowIfDisposed();
+
+		// Checked here rather than left to the store, so every store refuses the same types. The
+		// in-memory store never serializes, and it accepted types every platform store rejects.
+		CredentialSerialization.ThrowIfUnknownType(credential);
 
 		lock (LockFor(persona))
 		{

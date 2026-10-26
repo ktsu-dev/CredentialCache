@@ -232,6 +232,9 @@ public class CredentialCacheTests
 	[TestMethod]
 	public void RegisterMultipleCredentialFactoriesCreatesCredentialsCorrectly()
 	{
+		// AnotherCredential is defined here rather than in the library, so it has to be registered
+		// before any store will take it.
+		CredentialSerialization.RegisterDerivedType<AnotherCredential>(nameof(AnotherCredential));
 		using CredentialCache cache = NewCache();
 		CredentialWithNothingFactory factory1 = new();
 		AnotherCredentialFactory factory2 = new();
