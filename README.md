@@ -88,7 +88,7 @@ The library ships with three concrete `Credential` subclasses:
 
 ### Adding your own credential type
 
-`Credential` is a polymorphic record class round-tripped through `System.Text.Json`. New subclasses need a `[JsonDerivedType]` on the base so deserialization can resolve them:
+`Credential` is a polymorphic abstract class round-tripped through `System.Text.Json`. A subclass defined outside the library has to be registered once, at start-up, before a credential of that type is saved or loaded:
 
 ```csharp
 // 1. Add the subclass.
@@ -97,9 +97,9 @@ public sealed class CredentialWithCertificate : Credential
     public string Thumbprint { get; init; } = "";
 }
 
-// 2. Register it on the base in Credential.cs.
-[JsonDerivedType(typeof(CredentialWithCertificate), nameof(CredentialWithCertificate))]
-public abstract class Credential { /* ... */ }
+// 2. Register it. The discriminator is written into every stored credential of this type and
+//    identifies it when one is read back, so keep it stable once credentials have been saved.
+CredentialSerialization.RegisterDerivedType<CredentialWithCertificate>("MyApp.CredentialWithCertificate");
 
 // 3. Optional: register a factory so TryCreate<T> works.
 public sealed class CertificateFactory : ICredentialFactory<CredentialWithCertificate>
@@ -110,6 +110,8 @@ cache.RegisterCredentialFactory(new CertificateFactory());
 ```
 
 If a subclass uses `SemanticString<T>` properties, they round-trip through `ktsu.RoundTripStringJsonConverter` automatically.
+
+`AddOrReplace` refuses a subclass that was never registered with a `CredentialStoreException` naming the type, and leaves the cache and the store unchanged. It does this for every store, `InMemoryCredentialStore` included, so a test that uses the in-memory store fails the same way production would.
 
 ## Customising the backing store
 
