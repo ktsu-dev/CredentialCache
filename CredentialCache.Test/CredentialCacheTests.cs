@@ -309,6 +309,66 @@ public class CredentialCacheTests
 			CredentialCache.ResetSingletonForTesting();
 		}
 	}
+
+	[TestMethod]
+	public void DisposingTheSingletonLeavesItUsable()
+	{
+		CredentialCache.ResetSingletonForTesting();
+		InMemoryCredentialStore store = new();
+		CredentialCache.ConfigureStore(store);
+		try
+		{
+			PersonaGUID cached = CredentialCache.CreatePersonaGUID();
+			PersonaGUID storedOnly = CredentialCache.CreatePersonaGUID();
+			CredentialWithNothing cachedCredential = new();
+			CredentialWithNothing storedCredential = new();
+			store.Save(storedOnly, storedCredential);
+
+			using (CredentialCache cache = CredentialCache.Instance)
+			{
+				cache.AddOrReplace(cached, cachedCredential);
+			}
+
+			CredentialCache instance = CredentialCache.Instance;
+			Assert.IsTrue(instance.TryGet(cached, out Credential? first));
+			Assert.AreSame(cachedCredential, first);
+			Assert.IsTrue(instance.TryGet(storedOnly, out Credential? second));
+			Assert.IsNotNull(second);
+
+			PersonaGUID added = CredentialCache.CreatePersonaGUID();
+			instance.AddOrReplace(added, new CredentialWithNothing());
+			Assert.IsTrue(instance.TryGet(added, out _));
+
+			Assert.Throws<InvalidOperationException>(
+				() => CredentialCache.ConfigureStore(new InMemoryCredentialStore()));
+		}
+		finally
+		{
+			CredentialCache.ResetSingletonForTesting();
+		}
+	}
+
+	[TestMethod]
+	public void ResetSingletonForTestingStillDisposesTheOldSingleton()
+	{
+		CredentialCache.ResetSingletonForTesting();
+		CredentialCache.ConfigureStore(new InMemoryCredentialStore());
+		CredentialCache old = CredentialCache.Instance;
+
+		CredentialCache.ResetSingletonForTesting();
+
+		Assert.Throws<ObjectDisposedException>(() => old.TryGet(CredentialCache.CreatePersonaGUID(), out _));
+	}
+
+	[TestMethod]
+	public void DisposingAnOwnedCacheStillDisposesIt()
+	{
+		CredentialCache cache = new(new InMemoryCredentialStore());
+
+		cache.Dispose();
+
+		Assert.Throws<ObjectDisposedException>(() => cache.TryGet(CredentialCache.CreatePersonaGUID(), out _));
+	}
 }
 
 public class CredentialWithNothingFactory : ICredentialFactory<CredentialWithNothing>
