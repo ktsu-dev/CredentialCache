@@ -150,7 +150,7 @@ else
 
 ## Platform notes
 
-- **Windows Credential Manager** caps the credential blob at 2560 bytes (`5 * 512`). Tokens larger than that throw `CredentialStoreException` &mdash; split or compress before storing.
+- **Windows Credential Manager** caps the credential blob at 2560 bytes (`5 * 512`). The cap counts the serialized credential, which is UTF-8 JSON, so a non-ASCII character takes two to four bytes of it. Credentials larger than that throw `CredentialStoreException` &mdash; split or compress before storing.
 - **macOS** uses the user's default login keychain. The first access from an application prompts the user for permission, as with any keychain client.
 - **Linux** requires `libsecret-1` plus an active Secret Service. Headless CI agents typically have neither &mdash; use `InMemoryCredentialStore` there, or set up `dbus-run-session` + `gnome-keyring-daemon` as the `cross-platform.yml` workflow does.
 - All native calls happen on the thread the API is invoked from. The library's in-memory cache is thread-safe (`ConcurrentDictionary`); the native APIs themselves are documented as thread-safe by their respective platform owners, but blocking calls (especially libsecret) are not cheap &mdash; treat `Save` / `Remove` as I/O, not as cheap accessors.
