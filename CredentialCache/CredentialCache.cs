@@ -197,6 +197,10 @@ public sealed class CredentialCache : IDisposable
 	/// registered with <see cref="CredentialSerialization.RegisterDerivedType{T}(string)"/>. The
 	/// cache and the store are left unchanged.
 	/// </exception>
+	/// <exception cref="ArgumentException">
+	/// The store serializes credentials and <paramref name="credential"/> has a non-nullable
+	/// property set to <c>null</c>. The cache and the store are left unchanged.
+	/// </exception>
 	public void AddOrReplace(PersonaGUID persona, Credential credential)
 	{
 		ArgumentNullException.ThrowIfNull(persona);
