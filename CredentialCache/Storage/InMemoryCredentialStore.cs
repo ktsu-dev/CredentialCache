@@ -27,6 +27,10 @@ public sealed class InMemoryCredentialStore : ISearchableCredentialStore
 	{
 		ArgumentNullException.ThrowIfNull(persona);
 		ArgumentNullException.ThrowIfNull(credential);
+
+		// Refuse what a platform store could not serialize, so code tested against this store
+		// sees the same failure it would in production.
+		CredentialSerialization.ThrowIfUnknownType(credential);
 		_items[persona] = credential;
 	}
 

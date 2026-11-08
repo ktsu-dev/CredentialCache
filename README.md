@@ -111,7 +111,7 @@ cache.RegisterCredentialFactory(new CertificateFactory());
 
 If a subclass uses `SemanticString<T>` properties, they round-trip through `ktsu.RoundTripStringJsonConverter` automatically.
 
-`AddOrReplace` refuses a subclass that was never registered with a `CredentialStoreException` naming the type, and leaves the cache and the store unchanged. It does this for every store, `InMemoryCredentialStore` included, so a test that uses the in-memory store fails the same way production would.
+`AddOrReplace` refuses a subclass that was never registered with a `CredentialStoreException` naming the type, and leaves the cache and the store unchanged. It does this for every store, `InMemoryCredentialStore` included, so a test that uses the in-memory store fails the same way production would. Calling `Save` on a store directly refuses it the same way, with the same exception and message, from the in-memory store and each platform store. So do `CredentialSerialization.Serialize` and `SerializeToString`, which means a custom store built on them refuses it too.
 
 ## Customising the backing store
 
