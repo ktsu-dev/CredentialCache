@@ -159,14 +159,28 @@ public static class CredentialSerialization
 	/// <summary>
 	/// Serializes the credential to a UTF-8 JSON byte array.
 	/// </summary>
-	public static byte[] Serialize(Credential credential) =>
-		JsonSerializer.SerializeToUtf8Bytes(credential, options);
+	/// <exception cref="CredentialStoreException">
+	/// The credential's type is neither one of the library's own nor registered with
+	/// <see cref="RegisterDerivedType{T}(string)"/>.
+	/// </exception>
+	public static byte[] Serialize(Credential credential)
+	{
+		ThrowIfUnknownType(credential);
+		return JsonSerializer.SerializeToUtf8Bytes(credential, options);
+	}
 
 	/// <summary>
 	/// Serializes the credential to a UTF-8 JSON string.
 	/// </summary>
-	public static string SerializeToString(Credential credential) =>
-		JsonSerializer.Serialize(credential, options);
+	/// <exception cref="CredentialStoreException">
+	/// The credential's type is neither one of the library's own nor registered with
+	/// <see cref="RegisterDerivedType{T}(string)"/>.
+	/// </exception>
+	public static string SerializeToString(Credential credential)
+	{
+		ThrowIfUnknownType(credential);
+		return JsonSerializer.Serialize(credential, options);
+	}
 
 	/// <summary>
 	/// Deserializes a credential from a UTF-8 JSON byte array. Returns <c>null</c> if the bytes

@@ -82,6 +82,40 @@ public class CustomCredentialTypeTests
 	}
 
 	[TestMethod]
+	public void EveryStoreRefusesAnUnregisteredSubclassWithTheSameException()
+	{
+		NeverRegisteredCredential credential = new() { Value = "x" };
+		using CredentialCache cache = new(new InMemoryCredentialStore());
+		string expected = Assert.ThrowsExactly<CredentialStoreException>(
+			() => cache.AddOrReplace(NewPersona(), credential)).Message;
+
+		InMemoryCredentialStore inMemory = new();
+		PersonaGUID persona = NewPersona();
+		CredentialStoreException fromInMemory = Assert.ThrowsExactly<CredentialStoreException>(
+			() => inMemory.Save(persona, credential));
+		Assert.AreEqual(expected, fromInMemory.Message);
+		Assert.IsFalse(inMemory.TryLoad(persona, out _), "The refused credential should not have been kept.");
+
+		// The platform store serializes before any native call, so this needs no keyring. Comparing
+		// the message tells the type refusal apart from a store that is merely unavailable.
+		ICredentialStore platform = CredentialStoreFactory.CreateDefault("ktsu.CredentialCache.Test.Unregistered");
+		CredentialStoreException fromPlatform = Assert.ThrowsExactly<CredentialStoreException>(
+			() => platform.Save(NewPersona(), credential));
+		Assert.AreEqual(expected, fromPlatform.Message);
+	}
+
+	[TestMethod]
+	public void TheSerializationHelpersRefuseAnUnregisteredSubclass()
+	{
+		NeverRegisteredCredential credential = new() { Value = "x" };
+
+		Assert.Contains(nameof(NeverRegisteredCredential), Assert.ThrowsExactly<CredentialStoreException>(
+			() => CredentialSerialization.Serialize(credential)).Message);
+		Assert.Contains(nameof(NeverRegisteredCredential), Assert.ThrowsExactly<CredentialStoreException>(
+			() => CredentialSerialization.SerializeToString(credential)).Message);
+	}
+
+	[TestMethod]
 	public void RegisteringTheSameTypeAndDiscriminatorAgainDoesNothing()
 	{
 		CredentialSerialization.RegisterDerivedType<TwiceRegisteredCredential>("Test.TwiceRegisteredCredential");
