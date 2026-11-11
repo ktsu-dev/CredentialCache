@@ -55,9 +55,9 @@ internal sealed class WindowsCredentialStore : ISearchableCredentialStore
 				return false;
 			}
 
-			byte[] blob = new byte[cred.CredentialBlobSize];
-			Marshal.Copy(cred.CredentialBlob, blob, 0, blob.Length);
-			credential = CredentialSerialization.DeserializeAndScrub(blob);
+			// CredFree releases the block without scrubbing it, so the plaintext blob inside it
+			// is zeroed here first, along with the managed copy it was read into.
+			credential = NativeSecretBuffer.ReadCredentialAndZero(cred.CredentialBlob, cred.CredentialBlobSize);
 			return credential is not null;
 		}
 		finally

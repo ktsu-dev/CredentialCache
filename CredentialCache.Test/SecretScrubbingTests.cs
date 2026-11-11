@@ -236,6 +236,46 @@ public class SecretScrubbingTests
 	}
 
 	[TestMethod]
+	public void ReadCredentialAndZeroReturnsTheCredentialAndZeroesTheNativeCopy()
+	{
+		// Stands in for the block CredRead or SecKeychainFindGenericPassword returns: writable
+		// native memory holding the plaintext, which the store frees afterwards.
+		byte[] blob = SerializedCredential();
+		using NativeSecretBuffer native = NativeSecretBuffer.CopyOf(blob);
+		Assert.AreSequenceEqual(blob, ReadUnmanaged(native), "Precondition: the native copy is plaintext.");
+
+		Credential? credential = NativeSecretBuffer.ReadCredentialAndZero(native.Pointer, native.Length);
+
+		CredentialWithToken? typed = credential as CredentialWithToken;
+		Assert.IsNotNull(typed);
+		Assert.AreEqual("plaintext-token-to-scrub", typed!.Token.ToString());
+		Assert.AreSequenceEqual(new byte[blob.Length], ReadUnmanaged(native),
+			"The native plaintext must be zeroed before the store frees it.");
+	}
+
+	[TestMethod]
+	public void ReadCredentialAndZeroZeroesTheNativeCopyForUnparseableBytes()
+	{
+		byte[] blob = [.. "{ not a credential"u8];
+		using NativeSecretBuffer native = NativeSecretBuffer.CopyOf(blob);
+
+		Credential? credential = NativeSecretBuffer.ReadCredentialAndZero(native.Pointer, native.Length);
+
+		Assert.IsNull(credential);
+		Assert.AreSequenceEqual(new byte[blob.Length], ReadUnmanaged(native));
+	}
+
+	[TestMethod]
+	public void ReadCredentialAndZeroReturnsNullForNothing()
+	{
+		Assert.IsNull(NativeSecretBuffer.ReadCredentialAndZero(IntPtr.Zero, 10));
+
+		using NativeSecretBuffer native = NativeSecretBuffer.CopyOf([1]);
+		Assert.IsNull(NativeSecretBuffer.ReadCredentialAndZero(native.Pointer, 0));
+		Assert.AreSequenceEqual(new byte[] { 1 }, ReadUnmanaged(native), "A zero length touches nothing.");
+	}
+
+	[TestMethod]
 	public void ReadNulTerminatedCopiesUpToTheTerminatorOnly()
 	{
 		byte[] blob = SerializedCredential();

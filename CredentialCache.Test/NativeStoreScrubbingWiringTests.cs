@@ -35,6 +35,7 @@ public class NativeStoreScrubbingWiringTests
 	private static readonly MethodInfo SerializeToString = Helper(nameof(CredentialSerialization.SerializeToString));
 
 	private static readonly MethodInfo ReadCredential = Buffer(nameof(NativeSecretBuffer.ReadCredential));
+	private static readonly MethodInfo ReadCredentialAndZero = Buffer(nameof(NativeSecretBuffer.ReadCredentialAndZero));
 	private static readonly MethodInfo OfCredential = Buffer(nameof(NativeSecretBuffer.OfCredential));
 	private static readonly MethodInfo CopyWithinLimit = Buffer(nameof(NativeSecretBuffer.CopyWithinLimit));
 
@@ -106,9 +107,9 @@ public class NativeStoreScrubbingWiringTests
 			// reads through that wrapper so the length-finding is covered by tests rather
 			// than sitting in a method body that only runs on one operating system.
 			Assert.IsTrue(
-				Calls(tryLoad, DeserializeAndScrub) || Calls(tryLoad, ReadCredential),
+				Calls(tryLoad, DeserializeAndScrub) || Calls(tryLoad, ReadCredential) || Calls(tryLoad, ReadCredentialAndZero),
 				$"{store.Name}.TryLoad must deserialize through DeserializeAndScrub, directly or via "
-				+ "NativeSecretBuffer.ReadCredential, so the plaintext copy it read is zeroed.");
+				+ "NativeSecretBuffer.ReadCredential or ReadCredentialAndZero, so the plaintext copy it read is zeroed.");
 			Assert.IsFalse(
 				Calls(tryLoad, DeserializeFromString),
 				$"{store.Name}.TryLoad must not deserialize from a string: an immutable managed string "
@@ -196,6 +197,24 @@ public class NativeStoreScrubbingWiringTests
 	}
 
 	/// <summary>
+	/// <c>CredFree</c> and <c>SecKeychainItemFreeContent</c> release the plaintext the OS handed
+	/// back without scrubbing it. Scrubbing only the managed copy left a full plaintext copy of the
+	/// credential in freed native heap on every load (#173). Linux is exempt: libsecret's
+	/// <c>secret_password_free</c> wipes its own copy.
+	/// </summary>
+	[TestMethod]
+	public void TheWindowsAndMacOsStoresZeroTheNativePlaintextTheyLoad()
+	{
+		foreach (Type store in new[] { typeof(WindowsCredentialStore), typeof(MacOsCredentialStore) })
+		{
+			Assert.IsTrue(
+				Calls(Method(store, nameof(ICredentialStore.TryLoad)), ReadCredentialAndZero),
+				$"{store.Name}.TryLoad must read through NativeSecretBuffer.ReadCredentialAndZero, which zeroes the "
+				+ "plaintext the OS returned before the store frees it.");
+		}
+	}
+
+	/// <summary>
 	/// The second hop of the two assertions above. Accepting the wrapper as equivalent to a
 	/// direct call is only sound while the wrapper itself uses the scrubbing helper, so that is
 	/// asserted rather than assumed.
@@ -210,6 +229,13 @@ public class NativeStoreScrubbingWiringTests
 		Assert.IsFalse(
 			Calls(ReadCredential, DeserializeFromString),
 			"NativeSecretBuffer.ReadCredential must not deserialize from a string.");
+
+		Assert.IsTrue(
+			Calls(ReadCredentialAndZero, DeserializeAndScrub),
+			"NativeSecretBuffer.ReadCredentialAndZero must deserialize through DeserializeAndScrub.");
+		Assert.IsFalse(
+			Calls(ReadCredentialAndZero, DeserializeFromString),
+			"NativeSecretBuffer.ReadCredentialAndZero must not deserialize from a string.");
 
 		Assert.IsTrue(
 			Calls(OfCredential, Serialize),
