@@ -72,6 +72,10 @@ public static class CredentialSerialization
 		// Persuade System.Text.Json to use the SemanticString factory methods (Create / FromString)
 		// rather than treating SemanticString<T> as an IEnumerable<char> collection.
 		built.Converters.Add(new RoundTripStringJsonConverterFactory());
+		// Refuse a JSON null for a non-nullable property, in both directions. Otherwise a stored
+		// "Token":null reads back as a found credential whose Token throws on first use, and a
+		// credential with a null! property is persisted and round-trips.
+		built.RespectNullableAnnotations = true;
 		return built;
 	}
 
@@ -169,10 +173,22 @@ public static class CredentialSerialization
 	/// The credential's type is neither one of the library's own nor registered with
 	/// <see cref="RegisterDerivedType{T}(string)"/>.
 	/// </exception>
+	/// <exception cref="ArgumentException">
+	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
+	/// not be read back.
+	/// </exception>
 	public static byte[] Serialize(Credential credential)
 	{
 		ThrowIfUnknownType(credential);
-		return JsonSerializer.SerializeToUtf8Bytes(credential, options);
+
+		try
+		{
+			return JsonSerializer.SerializeToUtf8Bytes(credential, options);
+		}
+		catch (JsonException exception)
+		{
+			throw NotSerializable(credential, exception);
+		}
 	}
 
 	/// <summary>
@@ -182,11 +198,26 @@ public static class CredentialSerialization
 	/// The credential's type is neither one of the library's own nor registered with
 	/// <see cref="RegisterDerivedType{T}(string)"/>.
 	/// </exception>
+	/// <exception cref="ArgumentException">
+	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
+	/// not be read back.
+	/// </exception>
 	public static string SerializeToString(Credential credential)
 	{
 		ThrowIfUnknownType(credential);
-		return JsonSerializer.Serialize(credential, options);
+
+		try
+		{
+			return JsonSerializer.Serialize(credential, options);
+		}
+		catch (JsonException exception)
+		{
+			throw NotSerializable(credential, exception);
+		}
 	}
+
+	private static ArgumentException NotSerializable(Credential credential, JsonException exception) =>
+		new($"{credential.GetType()} cannot be stored: {exception.Message}", nameof(credential), exception);
 
 	/// <summary>
 	/// Deserializes a credential from a UTF-8 JSON byte array. Returns <c>null</c> if the bytes
