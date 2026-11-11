@@ -2,6 +2,7 @@
 
 Changes since v1.3.0:
 
+- Refuse a null non-nullable credential property when reading or saving (#204) (matt-edmondson)
 - Ignore Dispose on the process-wide Instance [patch] (#202) (matt-edmondson)
 - Write credential JSON with relaxed escaping so Windows' blob cap counts real bytes (#203) (matt-edmondson)
 - Refuse an unregistered Credential subclass in every store's Save, not only AddOrReplace [patch] (#207) (matt-edmondson)
