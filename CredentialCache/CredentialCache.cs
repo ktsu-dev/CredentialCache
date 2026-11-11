@@ -212,8 +212,9 @@ public sealed class CredentialCache : IDisposable
 	/// cache and the store are left unchanged.
 	/// </exception>
 	/// <exception cref="ArgumentException">
-	/// The store serializes credentials and <paramref name="credential"/> has a non-nullable
-	/// property set to <c>null</c>. The cache and the store are left unchanged.
+	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so no
+	/// serializing store could read it back. The cache and the store are left unchanged, whichever
+	/// store is configured.
 	/// </exception>
 	public void AddOrReplace(PersonaGUID persona, Credential credential)
 	{
@@ -221,9 +222,10 @@ public sealed class CredentialCache : IDisposable
 		ArgumentNullException.ThrowIfNull(credential);
 		ThrowIfDisposed();
 
-		// Checked here rather than left to the store, so every store refuses the same types. The
-		// in-memory store never serializes, and it accepted types every platform store rejects.
-		CredentialSerialization.ThrowIfUnknownType(credential);
+		// Checked here rather than left to the store, so every store refuses the same credentials.
+		// The in-memory store never serializes, and it accepted unregistered types and null
+		// non-nullable properties that every platform store rejects.
+		CredentialSerialization.ThrowIfNotSerializable(credential);
 
 		lock (LockFor(persona))
 		{

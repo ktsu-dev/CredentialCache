@@ -167,6 +167,21 @@ public static class CredentialSerialization
 	}
 
 	/// <summary>
+	/// Throws what <see cref="Serialize(Credential)"/> would throw for <paramref name="credential"/>,
+	/// without keeping its serialized form, so a store that never serializes refuses the same
+	/// credentials as one that does.
+	/// </summary>
+	/// <exception cref="CredentialStoreException">
+	/// The credential's type is neither one of the library's own nor registered with
+	/// <see cref="RegisterDerivedType{T}(string)"/>.
+	/// </exception>
+	/// <exception cref="ArgumentException">
+	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
+	/// not be read back.
+	/// </exception>
+	internal static void ThrowIfNotSerializable(Credential credential) => Zero(Serialize(credential));
+
+	/// <summary>
 	/// Serializes the credential to a UTF-8 JSON byte array.
 	/// </summary>
 	/// <exception cref="CredentialStoreException">

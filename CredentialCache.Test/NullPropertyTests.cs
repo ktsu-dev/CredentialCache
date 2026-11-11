@@ -65,10 +65,13 @@ public class NullPropertyTests
 	}
 
 	[TestMethod]
-	public void AddOrReplaceRejectsANullNonNullablePropertyAndLeavesTheStoreAndCacheUnchanged()
+	[DataRow(false)]
+	[DataRow(true)]
+	public void AddOrReplaceRejectsANullNonNullablePropertyAndLeavesTheStoreAndCacheUnchanged(bool inMemory)
 	{
-		RawBlobCredentialStore store = new();
-		using CredentialCache cache = new(store);
+		RawBlobCredentialStore rawStore = new();
+		InMemoryCredentialStore memoryStore = new();
+		using CredentialCache cache = inMemory ? new(memoryStore) : new(rawStore);
 		PersonaGUID persona = CredentialCache.CreatePersonaGUID();
 		CredentialWithUsernamePassword credential = new()
 		{
@@ -78,7 +81,31 @@ public class NullPropertyTests
 
 		Assert.ThrowsExactly<ArgumentException>(() => cache.AddOrReplace(persona, credential));
 
-		Assert.IsFalse(store.Blobs.ContainsKey(persona));
+		Assert.IsFalse(rawStore.Blobs.ContainsKey(persona));
+		Assert.IsFalse(memoryStore.TryLoad(persona, out _));
 		Assert.IsFalse(cache.TryGet(persona, out _));
+	}
+
+	[TestMethod]
+	public void InMemoryStoreSaveRejectsANullNonNullablePropertyAsAPlatformStoreWould()
+	{
+		InMemoryCredentialStore store = new();
+		PersonaGUID persona = CredentialCache.CreatePersonaGUID();
+
+		Assert.ThrowsExactly<ArgumentException>(() => store.Save(persona, new CredentialWithToken { Token = null! }));
+
+		Assert.IsFalse(store.TryLoad(persona, out _));
+	}
+
+	[TestMethod]
+	public void InMemoryStoreStillSavesACompleteCredential()
+	{
+		using CredentialCache cache = new(new InMemoryCredentialStore());
+		PersonaGUID persona = CredentialCache.CreatePersonaGUID();
+
+		cache.AddOrReplace(persona, new CredentialWithToken { Token = SemanticString<CredentialToken>.Create("abc") });
+
+		Assert.IsTrue(cache.TryGet(persona, out Credential? credential));
+		Assert.AreEqual("abc", ((CredentialWithToken)credential!).Token.ToString());
 	}
 }
