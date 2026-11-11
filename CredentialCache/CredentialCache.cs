@@ -39,6 +39,12 @@ public sealed class CredentialCache : IDisposable
 	private bool _disposed;
 
 	/// <summary>
+	/// Set on the cache <see cref="Instance"/> builds, so a caller's <see cref="Dispose"/> of
+	/// the shared singleton cannot break it for every other component in the process.
+	/// </summary>
+	private bool _isSingleton;
+
+	/// <summary>
 	/// Creates a new credential cache backed by <paramref name="store"/>.
 	/// </summary>
 	/// <param name="store">The store responsible for persistence. Must not be null.</param>
@@ -52,9 +58,17 @@ public sealed class CredentialCache : IDisposable
 	/// Gets the process-wide singleton instance, constructed on first access.
 	/// </summary>
 	/// <remarks>
+	/// <para>
 	/// To override the backing store call <see cref="ConfigureStore"/> before
 	/// touching this property. The first access constructs the singleton; later
 	/// reconfiguration requires <see cref="ResetSingletonForTesting"/>.
+	/// </para>
+	/// <para>
+	/// The singleton is shared by the whole process, so calling <see cref="Dispose"/> on it
+	/// (for example through <c>using var cache = CredentialCache.Instance;</c>) does nothing:
+	/// it stays usable and keeps serving what it has cached. Only
+	/// <see cref="ResetSingletonForTesting"/> disposes it.
+	/// </para>
 	/// </remarks>
 	public static CredentialCache Instance
 	{
@@ -65,7 +79,7 @@ public sealed class CredentialCache : IDisposable
 				if (_instance is null)
 				{
 					ICredentialStore store = _configuredStore ?? CredentialStoreFactory.CreateDefault();
-					_instance = new CredentialCache(store);
+					_instance = new CredentialCache(store) { _isSingleton = true };
 				}
 				return _instance;
 			}
@@ -109,7 +123,7 @@ public sealed class CredentialCache : IDisposable
 	{
 		lock (_instanceLock)
 		{
-			_instance?.Dispose();
+			_instance?.DisposeCore();
 			_instance = null;
 			_configuredStore = null;
 		}
@@ -281,7 +295,22 @@ public sealed class CredentialCache : IDisposable
 	/// store; nothing is persisted or deleted at dispose-time because every
 	/// mutation is already flushed eagerly in <see cref="AddOrReplace"/>.
 	/// </summary>
+	/// <remarks>
+	/// Does nothing when called on the process-wide <see cref="Instance"/>, which other
+	/// components may still be using; see <see cref="Instance"/>. A cache created with
+	/// <see cref="CredentialCache(ICredentialStore)"/> is disposed as usual.
+	/// </remarks>
 	public void Dispose()
+	{
+		if (_isSingleton)
+		{
+			return;
+		}
+
+		DisposeCore();
+	}
+
+	private void DisposeCore()
 	{
 		if (_disposed)
 		{
