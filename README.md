@@ -111,7 +111,7 @@ cache.RegisterCredentialFactory(new CertificateFactory());
 
 If a subclass uses `SemanticString<T>` properties, they round-trip through `ktsu.RoundTripStringJsonConverter` automatically.
 
-`AddOrReplace` refuses a subclass that was never registered with a `CredentialStoreException` naming the type, and leaves the cache and the store unchanged. It does this for every store, `InMemoryCredentialStore` included, so a test that uses the in-memory store fails the same way production would.
+`AddOrReplace` refuses a subclass that was never registered with a `CredentialStoreException` naming the type, and leaves the cache and the store unchanged. It does this for every store, `InMemoryCredentialStore` included, so a test that uses the in-memory store fails the same way production would. Calling `Save` on a store directly refuses it the same way, with the same exception and message, from the in-memory store and each platform store. So do `CredentialSerialization.Serialize` and `SerializeToString`, which means a custom store built on them refuses it too.
 
 ## Customising the backing store
 
@@ -150,7 +150,7 @@ else
 
 ## Platform notes
 
-- **Windows Credential Manager** caps the credential blob at 2560 bytes (`5 * 512`). Tokens larger than that throw `CredentialStoreException` &mdash; split or compress before storing.
+- **Windows Credential Manager** caps the credential blob at 2560 bytes (`5 * 512`). The cap counts the serialized credential, which is UTF-8 JSON, so a non-ASCII character takes two to four bytes of it. Credentials larger than that throw `CredentialStoreException` &mdash; split or compress before storing.
 - **macOS** uses the user's default login keychain. The first access from an application prompts the user for permission, as with any keychain client.
 - **Linux** requires `libsecret-1` plus an active Secret Service. Headless CI agents typically have neither &mdash; use `InMemoryCredentialStore` there, or set up `dbus-run-session` + `gnome-keyring-daemon` as the `cross-platform.yml` workflow does.
 - All native calls happen on the thread the API is invoked from. The library's in-memory cache is thread-safe (`ConcurrentDictionary`); the native APIs themselves are documented as thread-safe by their respective platform owners, but blocking calls (especially libsecret) are not cheap &mdash; treat `Save` / `Remove` as I/O, not as cheap accessors.
