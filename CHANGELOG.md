@@ -2,6 +2,9 @@
 
 Changes since v1.3.0:
 
+- Ignore Dispose on the process-wide Instance [patch] (#202) (matt-edmondson)
+- Write credential JSON with relaxed escaping so Windows' blob cap counts real bytes (#203) (matt-edmondson)
+- Refuse an unregistered Credential subclass in every store's Save, not only AddOrReplace [patch] (#207) (matt-edmondson)
 - Drop the type parameter name from the ArgumentExceptions RegisterDerivedType throws (Claude)
 - [minor] Let consumers register their own Credential subclasses (Claude)
 - Move schema caching into a testable NativeHandleCache (Claude)
