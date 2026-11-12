@@ -18,6 +18,10 @@ public class IllFormedTextTests
 		public string Value { get; init; } = "";
 
 		public IReadOnlyList<string> Values { get; init; } = [];
+
+		public IReadOnlyDictionary<string, string> Labels { get; init; } = new Dictionary<string, string>();
+
+		public IReadOnlyDictionary<CredentialToken, string> TokenLabels { get; init; } = new Dictionary<CredentialToken, string>();
 	}
 
 	[ClassInitialize]
@@ -102,5 +106,42 @@ public class IllFormedTextTests
 			CredentialSerialization.Deserialize(CredentialSerialization.Serialize(new CredentialWithPlainStrings { Value = token, Values = [token] })));
 		Assert.AreEqual(token, plain.Value);
 		Assert.AreEqual(token, plain.Values.Single());
+	}
+
+	[TestMethod]
+	public void SerializeRefusesALoneSurrogateInADictionaryKey()
+	{
+		Assert.ThrowsExactly<ArgumentException>(() => CredentialSerialization.Serialize(
+			new CredentialWithPlainStrings { Labels = new Dictionary<string, string> { ["k\uD800"] = "v" } }));
+		Assert.ThrowsExactly<ArgumentException>(() => CredentialSerialization.Serialize(
+			new CredentialWithPlainStrings { TokenLabels = new Dictionary<CredentialToken, string> { [SemanticString<CredentialToken>.Create("\uDC00k")] = "v" } }));
+	}
+
+	[TestMethod]
+	public void WellFormedDictionaryKeysRoundTrip()
+	{
+		const string key = "k\U0001F600";
+		CredentialToken tokenKey = SemanticString<CredentialToken>.Create(key);
+		CredentialWithPlainStrings credential = new()
+		{
+			Labels = new Dictionary<string, string> { [key] = "a" },
+			TokenLabels = new Dictionary<CredentialToken, string> { [tokenKey] = "b" },
+		};
+
+		CredentialWithPlainStrings loaded = Assert.IsInstanceOfType<CredentialWithPlainStrings>(
+			CredentialSerialization.DeserializeFromString(CredentialSerialization.SerializeToString(credential)));
+
+		Assert.AreEqual("a", loaded.Labels[key]);
+		Assert.AreEqual("b", loaded.TokenLabels[tokenKey]);
+	}
+
+	[TestMethod]
+	public void IsWellFormedAcceptsPairsAndRefusesLoneOrReversedSurrogates()
+	{
+		Assert.IsTrue(WellFormedTextConverterFactory.IsWellFormed(""));
+		Assert.IsTrue(WellFormedTextConverterFactory.IsWellFormed("plain \U0001F600 text"));
+		Assert.IsFalse(WellFormedTextConverterFactory.IsWellFormed("\uD800"));
+		Assert.IsFalse(WellFormedTextConverterFactory.IsWellFormed("\uDC00\uD800"));
+		Assert.IsFalse(WellFormedTextConverterFactory.IsWellFormed("a\uD800b"));
 	}
 }
