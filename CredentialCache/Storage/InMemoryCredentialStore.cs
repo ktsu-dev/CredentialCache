@@ -30,7 +30,7 @@ public sealed class InMemoryCredentialStore : ISearchableCredentialStore
 
 		// Refuse what a platform store could not serialize, so code tested against this store
 		// sees the same failure it would in production.
-		CredentialSerialization.ThrowIfUnknownType(credential);
+		CredentialSerialization.ThrowIfNotSerializable(credential);
 		_items[persona] = credential;
 	}
 

@@ -71,7 +71,9 @@ public static class CredentialSerialization
 		};
 		// Persuade System.Text.Json to use the SemanticString factory methods (Create / FromString)
 		// rather than treating SemanticString<T> as an IEnumerable<char> collection.
-		built.Converters.Add(new RoundTripStringJsonConverterFactory());
+		// Wrapped so a string or SemanticString holding a lone surrogate is refused rather than
+		// silently stored with U+FFFD in its place.
+		built.Converters.Add(new WellFormedTextConverterFactory(new RoundTripStringJsonConverterFactory()));
 		// Refuse a JSON null for a non-nullable property, in both directions. Otherwise a stored
 		// "Token":null reads back as a found credential whose Token throws on first use, and a
 		// credential with a null! property is persisted and round-trips.
@@ -167,6 +169,21 @@ public static class CredentialSerialization
 	}
 
 	/// <summary>
+	/// Throws what <see cref="Serialize(Credential)"/> would throw for <paramref name="credential"/>,
+	/// without keeping its serialized form, so a store that never serializes refuses the same
+	/// credentials as one that does.
+	/// </summary>
+	/// <exception cref="CredentialStoreException">
+	/// The credential's type is neither one of the library's own nor registered with
+	/// <see cref="RegisterDerivedType{T}(string)"/>.
+	/// </exception>
+	/// <exception cref="ArgumentException">
+	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
+	/// not be read back, or a value holding a lone surrogate, which would be stored as U+FFFD.
+	/// </exception>
+	internal static void ThrowIfNotSerializable(Credential credential) => Zero(Serialize(credential));
+
+	/// <summary>
 	/// Serializes the credential to a UTF-8 JSON byte array.
 	/// </summary>
 	/// <exception cref="CredentialStoreException">
@@ -175,7 +192,7 @@ public static class CredentialSerialization
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
-	/// not be read back.
+	/// not be read back, or a value holding a lone surrogate, which would be stored as U+FFFD.
 	/// </exception>
 	public static byte[] Serialize(Credential credential)
 	{
@@ -200,7 +217,7 @@ public static class CredentialSerialization
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
-	/// not be read back.
+	/// not be read back, or a value holding a lone surrogate, which would be stored as U+FFFD.
 	/// </exception>
 	public static string SerializeToString(Credential credential)
 	{
