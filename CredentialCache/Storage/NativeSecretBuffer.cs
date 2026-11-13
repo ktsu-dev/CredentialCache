@@ -182,6 +182,51 @@ internal sealed class NativeSecretBuffer : IDisposable
 	}
 
 	/// <summary>
+	/// Deserializes the <paramref name="length"/> plaintext bytes a native credential API
+	/// returned at <paramref name="pointer"/>, then zeroes both the managed copy and the
+	/// native memory itself.
+	/// </summary>
+	/// <param name="pointer">
+	/// Writable memory the native API allocated and the caller will free, holding the
+	/// plaintext credential blob.
+	/// </param>
+	/// <param name="length">The number of plaintext bytes at <paramref name="pointer"/>.</param>
+	/// <returns>
+	/// The credential, or <see langword="null"/> when <paramref name="pointer"/> addresses
+	/// nothing, <paramref name="length"/> is zero, or the bytes are not a known credential.
+	/// </returns>
+	/// <remarks>
+	/// The read path for a store whose native API hands back a pointer and a length, such as
+	/// <c>CredRead</c> or <c>SecKeychainFindGenericPassword</c>. Neither <c>CredFree</c> nor
+	/// <c>SecKeychainItemFreeContent</c> scrubs what it releases, so a store that only
+	/// scrubbed its managed copy left a full plaintext copy in freed native heap on every
+	/// load (#173). The native bytes are zeroed on every path out, the unparseable one
+	/// included, while the memory is still allocated; the caller frees it afterwards.
+	/// </remarks>
+	internal static Credential? ReadCredentialAndZero(IntPtr pointer, int length)
+	{
+		ArgumentOutOfRangeException.ThrowIfNegative(length);
+
+		if (pointer == IntPtr.Zero || length == 0)
+		{
+			return null;
+		}
+
+		try
+		{
+			byte[] blob = new byte[length];
+			Marshal.Copy(pointer, blob, 0, length);
+			return CredentialSerialization.DeserializeAndScrub(blob);
+		}
+		finally
+		{
+			// As in Zero(): Marshal.Copy into unmanaged memory is an opaque interop call the
+			// runtime cannot elide as a dead store.
+			Marshal.Copy(new byte[length], 0, pointer, length);
+		}
+	}
+
+	/// <summary>
 	/// Copies the nul-terminated bytes at <paramref name="pointer"/> into a managed array,
 	/// excluding the terminator.
 	/// </summary>

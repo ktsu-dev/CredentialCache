@@ -71,7 +71,9 @@ public static class CredentialSerialization
 		};
 		// Persuade System.Text.Json to use the SemanticString factory methods (Create / FromString)
 		// rather than treating SemanticString<T> as an IEnumerable<char> collection.
-		built.Converters.Add(new RoundTripStringJsonConverterFactory());
+		// Wrapped so a string or SemanticString holding a lone surrogate is refused rather than
+		// silently stored with U+FFFD in its place.
+		built.Converters.Add(new WellFormedTextConverterFactory(new RoundTripStringJsonConverterFactory()));
 		// Refuse a JSON null for a non-nullable property, in both directions. Otherwise a stored
 		// "Token":null reads back as a found credential whose Token throws on first use, and a
 		// credential with a null! property is persisted and round-trips.
@@ -177,7 +179,7 @@ public static class CredentialSerialization
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
-	/// not be read back.
+	/// not be read back, or a value holding a lone surrogate, which would be stored as U+FFFD.
 	/// </exception>
 	internal static void ThrowIfNotSerializable(Credential credential) => Zero(Serialize(credential));
 
@@ -190,7 +192,7 @@ public static class CredentialSerialization
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
-	/// not be read back.
+	/// not be read back, or a value holding a lone surrogate, which would be stored as U+FFFD.
 	/// </exception>
 	public static byte[] Serialize(Credential credential)
 	{
@@ -215,7 +217,7 @@ public static class CredentialSerialization
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so it could
-	/// not be read back.
+	/// not be read back, or a value holding a lone surrogate, which would be stored as U+FFFD.
 	/// </exception>
 	public static string SerializeToString(Credential credential)
 	{
@@ -236,7 +238,7 @@ public static class CredentialSerialization
 
 	/// <summary>
 	/// Deserializes a credential from a UTF-8 JSON byte array. Returns <c>null</c> if the bytes
-	/// do not represent a known credential.
+	/// do not represent a known credential, or hold a value its property's type refuses.
 	/// </summary>
 	public static Credential? Deserialize(byte[] utf8Json)
 	{
@@ -256,6 +258,12 @@ public static class CredentialSerialization
 		catch (NotSupportedException)
 		{
 			// Well-formed JSON with no $type discriminator is not a known credential either
+			return null;
+		}
+		catch (ArgumentException)
+		{
+			// A value its SemanticString type refuses, because it was damaged, written by another
+			// tool, or saved before the type's validation was tightened, is unreadable too
 			return null;
 		}
 	}
@@ -305,7 +313,7 @@ public static class CredentialSerialization
 
 	/// <summary>
 	/// Deserializes a credential from a UTF-8 JSON string. Returns <c>null</c> if the value
-	/// does not represent a known credential.
+	/// does not represent a known credential, or holds a value its property's type refuses.
 	/// </summary>
 	public static Credential? DeserializeFromString(string utf8Json)
 	{
@@ -325,6 +333,12 @@ public static class CredentialSerialization
 		catch (NotSupportedException)
 		{
 			// Well-formed JSON with no $type discriminator is not a known credential either
+			return null;
+		}
+		catch (ArgumentException)
+		{
+			// A value its SemanticString type refuses, because it was damaged, written by another
+			// tool, or saved before the type's validation was tightened, is unreadable too
 			return null;
 		}
 	}

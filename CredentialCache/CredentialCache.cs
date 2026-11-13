@@ -213,8 +213,9 @@ public sealed class CredentialCache : IDisposable
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	/// <paramref name="credential"/> has a non-nullable property set to <c>null</c>, so no
-	/// serializing store could read it back. The cache and the store are left unchanged, whichever
-	/// store is configured.
+	/// serializing store could read it back, or a value holding a lone surrogate, which a
+	/// serializing store would persist as U+FFFD. The cache and the store are left unchanged,
+	/// whichever store is configured.
 	/// </exception>
 	public void AddOrReplace(PersonaGUID persona, Credential credential)
 	{
