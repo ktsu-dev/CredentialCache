@@ -55,9 +55,9 @@ internal sealed class MacOsCredentialStore : ICredentialStore
 
 		try
 		{
-			byte[] blob = new byte[length];
-			Marshal.Copy(passwordPtr, blob, 0, (int)length);
-			credential = CredentialSerialization.DeserializeAndScrub(blob);
+			// SecKeychainItemFreeContent releases the password data without scrubbing it, so the
+			// plaintext is zeroed here first, along with the managed copy it was read into.
+			credential = NativeSecretBuffer.ReadCredentialAndZero(passwordPtr, checked((int)length));
 			return credential is not null;
 		}
 		finally
