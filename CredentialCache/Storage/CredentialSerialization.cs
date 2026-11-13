@@ -238,7 +238,7 @@ public static class CredentialSerialization
 
 	/// <summary>
 	/// Deserializes a credential from a UTF-8 JSON byte array. Returns <c>null</c> if the bytes
-	/// do not represent a known credential.
+	/// do not represent a known credential, or hold a value its property's type refuses.
 	/// </summary>
 	public static Credential? Deserialize(byte[] utf8Json)
 	{
@@ -258,6 +258,12 @@ public static class CredentialSerialization
 		catch (NotSupportedException)
 		{
 			// Well-formed JSON with no $type discriminator is not a known credential either
+			return null;
+		}
+		catch (ArgumentException)
+		{
+			// A value its SemanticString type refuses, because it was damaged, written by another
+			// tool, or saved before the type's validation was tightened, is unreadable too
 			return null;
 		}
 	}
@@ -307,7 +313,7 @@ public static class CredentialSerialization
 
 	/// <summary>
 	/// Deserializes a credential from a UTF-8 JSON string. Returns <c>null</c> if the value
-	/// does not represent a known credential.
+	/// does not represent a known credential, or holds a value its property's type refuses.
 	/// </summary>
 	public static Credential? DeserializeFromString(string utf8Json)
 	{
@@ -327,6 +333,12 @@ public static class CredentialSerialization
 		catch (NotSupportedException)
 		{
 			// Well-formed JSON with no $type discriminator is not a known credential either
+			return null;
+		}
+		catch (ArgumentException)
+		{
+			// A value its SemanticString type refuses, because it was damaged, written by another
+			// tool, or saved before the type's validation was tightened, is unreadable too
 			return null;
 		}
 	}
