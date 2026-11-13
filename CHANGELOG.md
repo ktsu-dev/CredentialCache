@@ -2,6 +2,10 @@
 
 Changes since v1.3.0:
 
+- Zero the native plaintext TryGet loads before freeing it (#209) (matt-edmondson)
+- Read a stored value its SemanticString type refuses as not found [patch] (#217) (matt-edmondson)
+- Refuse a lone surrogate when saving instead of storing U+FFFD [patch] (#218) (matt-edmondson)
+- Suppress Polyfill shim drift in package validation [patch] (#220) (matt-edmondson)
 - Refuse a null non-nullable credential property when reading or saving (#204) (matt-edmondson)
 - Ignore Dispose on the process-wide Instance [patch] (#202) (matt-edmondson)
 - Write credential JSON with relaxed escaping so Windows' blob cap counts real bytes (#203) (matt-edmondson)
