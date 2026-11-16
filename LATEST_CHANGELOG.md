@@ -1,6 +1,6 @@
-## v1.4.1 (patch)
+## v1.4.2-pre.1 (prerelease)
 
-Changes since v1.4.0:
+Changes since v1.4.1:
 
-- Refuse a null non-nullable property in the in-memory store too [patch] (#212) (matt-edmondson)
+- Bump the ktsu group with 11 updates (dependabot[bot])
 
