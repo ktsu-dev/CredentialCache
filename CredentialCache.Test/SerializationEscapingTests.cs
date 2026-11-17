@@ -80,4 +80,68 @@ public class SerializationEscapingTests
 			Assert.AreEqual(Password, loaded.Password.WeakString);
 		}
 	}
+
+	[TestMethod]
+	public void SupplementaryCharactersAreWrittenAsRawUtf8AndFitWindowsBlobCap()
+	{
+		// 210 emoji are 840 UTF-8 bytes. Escaped as surrogate pairs they were 2520 bytes, which
+		// with the envelope pushed the blob over Windows Credential Manager's 2560-byte cap.
+		string token = string.Concat(Enumerable.Repeat("\U0001F600", 210));
+		CredentialWithToken credential = new()
+		{
+			Token = SemanticString<CredentialToken>.Create(token),
+		};
+
+		byte[] blob = CredentialSerialization.Serialize(credential);
+		string json = Encoding.UTF8.GetString(blob);
+
+		Assert.DoesNotContain("\\u", json);
+		Assert.IsLessThan(Encoding.UTF8.GetByteCount(token) + 64, blob.Length);
+		using NativeSecretBuffer buffer = NativeSecretBuffer.CopyWithinLimit(blob, 5 * 512, "test");
+		CredentialWithToken loaded = Assert.IsInstanceOfType<CredentialWithToken>(CredentialSerialization.DeserializeFromString(json));
+		Assert.AreEqual(token, loaded.Token.WeakString);
+	}
+
+	[TestMethod]
+	public void SerializeToStringWritesSupplementaryCharactersRaw()
+	{
+		const string token = "a\U00020000b\U0001F680c";
+		CredentialWithToken credential = new()
+		{
+			Token = SemanticString<CredentialToken>.Create(token),
+		};
+
+		string json = CredentialSerialization.SerializeToString(credential);
+
+		Assert.DoesNotContain("\\u", json);
+		Assert.Contains(token, json);
+		CredentialWithToken loaded = Assert.IsInstanceOfType<CredentialWithToken>(CredentialSerialization.DeserializeFromString(json));
+		Assert.AreEqual(token, loaded.Token.WeakString);
+	}
+
+	[TestMethod]
+	public void QuotesBackslashesAndControlCharactersAreStillEscaped()
+	{
+		const string token = "q\"b\\n\nt\tz\u0001\u001F\U0001F600";
+		CredentialWithToken credential = new()
+		{
+			Token = SemanticString<CredentialToken>.Create(token),
+		};
+
+		string json = Encoding.UTF8.GetString(CredentialSerialization.Serialize(credential));
+
+		Assert.Contains("q\\\"b\\\\n\\nt\\tz\\u0001\\u001F\U0001F600", json);
+		CredentialWithToken loaded = Assert.IsInstanceOfType<CredentialWithToken>(CredentialSerialization.Deserialize(Encoding.UTF8.GetBytes(json)));
+		Assert.AreEqual(token, loaded.Token.WeakString);
+	}
+
+	[TestMethod]
+	public void PreviouslyEscapedSurrogatePairStillDeserializes()
+	{
+		const string escaped = "{\"$type\":\"CredentialWithToken\",\"Token\":\"\\uD83D\\uDE00\"}";
+
+		CredentialWithToken loaded = Assert.IsInstanceOfType<CredentialWithToken>(CredentialSerialization.DeserializeFromString(escaped));
+
+		Assert.AreEqual("\U0001F600", loaded.Token.WeakString);
+	}
 }
