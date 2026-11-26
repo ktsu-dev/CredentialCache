@@ -4,7 +4,6 @@ namespace ktsu.CredentialCache.Storage;
 
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -67,7 +66,9 @@ public static class CredentialSerialization
 			// as a six-byte \uXXXX, which pushes secrets over size-capped stores such as Windows
 			// Credential Manager's 2560-byte blob. The payload is never embedded in HTML or
 			// script, so HTML-safe escaping buys nothing, and the reader accepts both forms.
-			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+			// UnsafeRelaxedJsonEscaping alone still writes an emoji as a twelve-byte surrogate
+			// pair escape, so this encoder writes supplementary characters raw as well.
+			Encoder = CredentialJsonEncoder.Instance,
 		};
 		// Persuade System.Text.Json to use the SemanticString factory methods (Create / FromString)
 		// rather than treating SemanticString<T> as an IEnumerable<char> collection.
